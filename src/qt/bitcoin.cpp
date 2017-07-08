@@ -114,7 +114,7 @@ static void handleRunawayException(std::exception *e)
     exit(1);
 }
 
-#ifndef BITCOIN_QT_TEST
+#ifndef TESTA_PROGRAMO
 int main(int argc, char *argv[])
 {
     // Command-line options take precedence:
@@ -296,4 +296,4 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-#endif // BITCOIN_QT_TEST
+#endif // TESTA_PROGRAMO

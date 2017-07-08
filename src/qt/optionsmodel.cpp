@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include "optionsmodel.h"
 
 #include "bitcoinunits.h"
@@ -217,10 +220,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
         case MinimizeToTray:
             fMinimizeToTray = value.toBool();
             settings.setValue("fMinimizeToTray", fMinimizeToTray);
-            break;
-        case MapPortUPnP:
-            settings.setValue("fUseUPnP", value.toBool());
-            MapPort(value.toBool());
             break;
         case MinimizeOnClose:
             fMinimizeOnClose = value.toBool();

@@ -1,8 +1,8 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2013 The Primecoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
 #ifndef WIN32
 // for posix_fallocate
@@ -1031,30 +1031,16 @@ void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Primecoin
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Primecoin
-    // Mac: ~/Library/Application Support/Primecoin
-    // Unix: ~/.primecoin
-#ifdef WIN32
-    // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Primecoin";
-#else
+    // Unix: ~/.primmonero
     fs::path pathRet;
     char* pszHome = getenv("HOME");
-    if (pszHome == NULL || strlen(pszHome) == 0)
+    if (pszHome == NULL || strlen(pszHome) == 0) {
         pathRet = fs::path("/");
-    else
+    }
+    else {
         pathRet = fs::path(pszHome);
-#ifdef MAC_OSX
-    // Mac
-    pathRet /= "Library/Application Support";
-    fs::create_directory(pathRet);
-    return pathRet / "Primecoin";
-#else
-    // Unix
-    return pathRet / ".primecoin";
-#endif
-#endif
+    }
+    return pathRet / ".primmonero";
 }
 
 const boost::filesystem::path &GetDataDir(bool fNetSpecific)
@@ -1093,7 +1079,7 @@ const boost::filesystem::path &GetDataDir(bool fNetSpecific)
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", "primecoin.conf"));
+    boost::filesystem::path pathConfigFile(GetArg("-agordo", "primmonero.agordo"));
     if (!pathConfigFile.is_complete()) pathConfigFile = GetDataDir(false) / pathConfigFile;
     return pathConfigFile;
 }
@@ -1127,7 +1113,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", "primecoind.pid"));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "primmonerod.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }

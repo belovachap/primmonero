@@ -1,7 +1,9 @@
+# Kopirajto 2017 Chapman Shoop
+# Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 TEMPLATE = app
-TARGET = primecoin-qt
-macx:TARGET = "Primecoin-HP-Qt"
-VERSION = 0.1.2
+TARGET = primmonero
+VERSION = 0.0.0
 INCLUDEPATH += src src/json src/qt
 QT += network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
@@ -73,23 +75,6 @@ contains(USE_QRCODE, 1) {
     message(Building with QRCode support)
     DEFINES += USE_QRCODE
     LIBS += -lqrencode
-}
-
-# use: qmake "USE_UPNP=1" ( enabled by default; default)
-#  or: qmake "USE_UPNP=0" (disabled by default)
-#  or: qmake "USE_UPNP=-" (not supported)
-# miniupnpc (http://miniupnp.free.fr/files/) must be installed for support
-contains(USE_UPNP, -) {
-    message(Building without UPNP support)
-} else {
-    message(Building with UPNP support)
-    count(USE_UPNP, 0) {
-        USE_UPNP=1
-    }
-    DEFINES += USE_UPNP=$$USE_UPNP STATICLIB
-    INCLUDEPATH += $$MINIUPNPC_INCLUDE_PATH
-    LIBS += $$join(MINIUPNPC_LIB_PATH,,-L,) -lminiupnpc
-    win32:LIBS += -liphlpapi
 }
 
 # use: qmake "USE_DBUS=1"
@@ -328,35 +313,16 @@ SOURCES += src/qt/qrcodedialog.cpp
 FORMS += src/qt/forms/qrcodedialog.ui
 }
 
-contains(BITCOIN_QT_TEST, 1) {
-SOURCES += src/qt/test/test_main.cpp \
-    src/qt/test/uritests.cpp
-HEADERS += src/qt/test/uritests.h
-DEPENDPATH += src/qt/test
-QT += testlib
-TARGET = bitcoin-qt_test
-DEFINES += BITCOIN_QT_TEST
-  macx: CONFIG -= app_bundle
+# Testa programo transpasoj
+contains(TESTA_PROGRAMO, 1) {
+    SOURCES += src/qt/test/test_main.cpp \
+               src/qt/test/uritests.cpp
+    HEADERS += src/qt/test/uritests.h
+    DEPENDPATH += src/qt/test
+    QT += testlib
+    TARGET = testa-primmonero
+    DEFINES += TESTA_PROGRAMO
 }
-
-CODECFORTR = UTF-8
-
-# for lrelease/lupdate
-# also add new translations to src/qt/bitcoin.qrc under translations/
-TRANSLATIONS = $$files(src/qt/locale/bitcoin_*.ts)
-
-isEmpty(QMAKE_LRELEASE) {
-    win32:QMAKE_LRELEASE = $$[QT_INSTALL_BINS]\\lrelease.exe
-    else:QMAKE_LRELEASE = $$[QT_INSTALL_BINS]/lrelease
-}
-isEmpty(QM_DIR):QM_DIR = $$PWD/src/qt/locale
-# automatically build translations, so they can be included in resource file
-TSQM.name = lrelease ${QMAKE_FILE_IN}
-TSQM.input = TRANSLATIONS
-TSQM.output = $$QM_DIR/${QMAKE_FILE_BASE}.qm
-TSQM.commands = $$QMAKE_LRELEASE ${QMAKE_FILE_IN} -qm ${QMAKE_FILE_OUT}
-TSQM.CONFIG = no_link
-QMAKE_EXTRA_COMPILERS += TSQM
 
 # "Other files" to show in Qt Creator
 OTHER_FILES += README.md \
@@ -446,5 +412,3 @@ contains(RELEASE, 1) {
         LIBS += -Wl,-Bdynamic
     }
 }
-
-system($$QMAKE_LRELEASE -silent $$TRANSLATIONS)

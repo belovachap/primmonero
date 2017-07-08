@@ -1,12 +1,7 @@
 # Copyright (c) 2009-2010 Satoshi Nakamoto
 # Copyright (c) 2013 Primecoind developers
-# Distributed under conditional MIT/X11 software license,
-# see the accompanying file COPYING
-
-# :=0 --> UPnP support turned off by default at runtime
-# :=1 --> UPnP support turned on by default at runtime
-# :=- --> No UPnP support - miniupnp not required
-USE_UPNP:=0
+# Kopirajto (c) 2017 Chapman Shoop
+# Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
 # :=1 --> Enable IPv6 support
 # :=0 --> Disable IPv6 support
@@ -44,8 +39,6 @@ LIBS += \
    -l db_cxx$(BDB_LIB_SUFFIX) \
    -l ssl \
    -l crypto \
-   -l nsl \
-   -l socket \
  -Wl,-Bdynamic \
    -l gmp \
  -Wl,-B$(LMODE)
@@ -53,14 +46,6 @@ LIBS += \
 TESTLIBS += \
  -Wl,-B$(LMODE) \
    -l boost_unit_test_framework$(BOOST_LIB_SUFFIX)
-
-ifndef USE_UPNP
-	override USE_UPNP = -
-endif
-ifneq (${USE_UPNP}, -)
-	LIBS += -l miniupnpc
-	DEFS += -DUSE_UPNP=$(USE_UPNP)
-endif
 
 ifneq (${USE_IPV6}, -)
 	DEFS += -DUSE_IPV6=$(USE_IPV6)
@@ -97,7 +82,7 @@ LIBS+= \
     # Make some important things such as the global offset table read only as soon as
     # the dynamic linker is finished building it. This will prevent overwriting of addresses
     # which would later be jumped to.
-    LDHARDENING+=-Wl,-z,now
+    LDHARDENING+=-Wl,-z,relro -Wl,-z,now
 
     # Build position independent code to take advantage of Address Space Layout Randomization
     # offered by some kernels.
@@ -159,10 +144,10 @@ OBJS= \
     obj/prime.o \
     obj/checkpointsync.o
 
-all: primecoind
+all: primmonerad
 
-test check: test_primecoin FORCE
-	./test_primecoin
+test check: testa-primmonerad FORCE
+	./testa-primmonerad
 
 #
 # LevelDB support
@@ -190,7 +175,7 @@ obj/%.o: %.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-primecoind: $(OBJS:obj/%=obj/%)
+primmonerad: $(OBJS:obj/%=obj/%)
 	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -202,11 +187,11 @@ obj-test/%.o: test/%.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-test_primecoin: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+testa-primmonerad: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	$(LINK) $(xCXXFLAGS) -o $@ $(LIBPATHS) $^ $(TESTLIBS) $(xLDFLAGS) $(LIBS)
 
 clean:
-	-rm -f primecoind test_primecoin
+	-rm -f primmonerad testa-primmonerad
 	-rm -f obj/*.o
 	-rm -f obj-test/*.o
 	-rm -f obj/*.P
