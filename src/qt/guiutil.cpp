@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include <QApplication>
 
 #include "guiutil.h"
@@ -77,10 +80,10 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent)
     widget->setAlignment(Qt::AlignRight|Qt::AlignVCenter);
 }
 
-bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
+bool analizasPrimmoneraURI(const QUrl &uri, SendCoinsRecipient *out)
 {
     // return if URI is not valid or is no bitcoin URI
-    if(!uri.isValid() || uri.scheme() != QString("primecoin"))
+    if(!uri.isValid() || uri.scheme() != QString("primmonero"))
         return false;
 
     SendCoinsRecipient rv;
@@ -123,18 +126,18 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
     return true;
 }
 
-bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
+bool analizasPrimmoneraURI(QString uri, SendCoinsRecipient *out)
 {
     // Convert bitcoin:// to bitcoin:
     //
     //    Cannot handle this later, because bitcoin:// will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if(uri.startsWith("primecoin://"))
+    if(uri.startsWith("primmonero://"))
     {
-        uri.replace(0, 12, "primecoin:");
+        uri.replace(0, 13, "primmonero:");
     }
     QUrl uriInstance(uri);
-    return parseBitcoinURI(uriInstance, out);
+    return analizasPrimmoneraURI(uriInstance, out);
 }
 
 QString HtmlEscape(const QString& str, bool fMultiLine)

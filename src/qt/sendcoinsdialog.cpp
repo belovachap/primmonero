@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include "sendcoinsdialog.h"
 #include "ui_sendcoinsdialog.h"
 
@@ -292,7 +295,7 @@ bool SendCoinsDialog::handleURI(const QString &uri)
 {
     SendCoinsRecipient rv;
     // URI has to be valid
-    if (GUIUtil::parseBitcoinURI(uri, &rv))
+    if (GUIUtil::analizasPrimmoneraURI(uri, &rv))
     {
         CBitcoinAddress address(rv.address.toStdString());
         if (!address.IsValid())
