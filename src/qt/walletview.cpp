@@ -4,6 +4,7 @@
  * W.J. van der Laan 2011-2012
  * The Bitcoin Developers 2011-2013
  */
+#include "bitcoinunits.h"
 #include "walletview.h"
 #include "bitcoingui.h"
 #include "transactiontablemodel.h"
@@ -12,7 +13,6 @@
 #include "signverifymessagedialog.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
-#include "optionsmodel.h"
 #include "transactionview.h"
 #include "overviewpage.h"
 #include "askpassphrasedialog.h"
@@ -97,8 +97,6 @@ void WalletView::setClientModel(ClientModel *clientModel)
     if (clientModel)
     {
         overviewPage->setClientModel(clientModel);
-        addressBookPage->setOptionsModel(clientModel->getOptionsModel());
-        receiveCoinsPage->setOptionsModel(clientModel->getOptionsModel());
     }
 }
 
@@ -143,7 +141,7 @@ void WalletView::incomingTransaction(const QModelIndex& parent, int start, int /
     QString type = ttm->index(start, TransactionTableModel::Type, parent).data().toString();
     QString address = ttm->index(start, TransactionTableModel::ToAddress, parent).data().toString();
 
-    gui->incomingTransaction(date, walletModel->getOptionsModel()->getDisplayUnit(), amount, type, address);
+    gui->incomingTransaction(date, BitcoinUnits::BTC, amount, type, address);
 }
 
 void WalletView::gotoOverviewPage()

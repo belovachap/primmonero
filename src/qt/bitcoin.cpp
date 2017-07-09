@@ -7,7 +7,6 @@
 #include "bitcoingui.h"
 #include "clientmodel.h"
 #include "walletmodel.h"
-#include "optionsmodel.h"
 #include "guiutil.h"
 #include "guiconstants.h"
 #include "init.h"
@@ -150,18 +149,6 @@ int main(int argc, char *argv[])
     }
     ReadConfigFile(mapArgs, mapMultiArgs);
 
-    // Application identification (must be set before OptionsModel is initialized,
-    // as it is used to locate QSettings)
-    QApplication::setOrganizationName("Primecoin");
-    QApplication::setOrganizationDomain("primecoin.org");
-    if(GetBoolArg("-testnet")) // Separate UI settings for testnet
-        QApplication::setApplicationName("Primecoin-HP-Qt-testnet");
-    else
-        QApplication::setApplicationName("Primecoin-HP-Qt");
-
-    // ... then GUI settings:
-    OptionsModel optionsModel;
-
     // Get desired locale (e.g. "de_DE") from command line or use system locale
     QString lang_territory = QString::fromStdString(GetArg("-lang", QLocale::system().name().toStdString()));
     QString lang = lang_territory;
@@ -237,57 +224,46 @@ int main(int argc, char *argv[])
         QObject::connect(pollShutdownTimer, SIGNAL(timeout()), guiref, SLOT(detectShutdown()));
         pollShutdownTimer->start(200);
 
-        if(AppInit2(threadGroup))
-        {
-            {
-                // Put this in a block, so that the Model objects are cleaned up before
-                // calling Shutdown().
-
-                optionsModel.Upgrade(); // Must be done after AppInit2
-
-                if (splashref)
-                    splash.finish(&window);
-
-                ClientModel clientModel(&optionsModel);
-                WalletModel walletModel(pwalletMain, &optionsModel);
-
-                window.setClientModel(&clientModel);
-                window.addWallet("~Default", &walletModel);
-                window.setCurrentWallet("~Default");
-
-                // If -min option passed, start window minimized.
-                if(GetBoolArg("-min"))
-                {
-                    window.showMinimized();
-                }
-                else
-                {
-                    window.show();
-                }
-
-                // Now that initialization/startup is done, process any command-line
-                // bitcoin: URIs
-                QObject::connect(paymentServer, SIGNAL(receivedURI(QString)), &window, SLOT(handleURI(QString)));
-                QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
-
-                app.exec();
-
-                window.hide();
-                window.setClientModel(0);
-                window.removeAllWallets();
-                guiref = 0;
-            }
-            // Shutdown the core and its threads, but don't exit Bitcoin-Qt here
-            threadGroup.interrupt_all();
-            threadGroup.join_all();
-            Shutdown();
-        }
-        else
-        {
+        if (!AppInit2(threadGroup)) {
             threadGroup.interrupt_all();
             threadGroup.join_all();
             Shutdown();
             return 1;
+        } else {
+            // Put this in a block, so that the Model objects are cleaned up before
+            // calling Shutdown().
+
+            if (splashref)
+                splash.finish(&window);
+
+            ClientModel *clientModel = new ClientModel();
+            WalletModel walletModel(pwalletMain);
+
+            window.setClientModel(clientModel);
+            window.addWallet("~Default", &walletModel);
+            window.setCurrentWallet("~Default");
+
+            // If -min option passed, start window minimized.
+            if(GetBoolArg("-min"))
+            {
+                window.showMinimized();
+            }
+            else
+            {
+                window.show();
+            }
+
+            // Now that initialization/startup is done, process any command-line
+            // bitcoin: URIs
+            QObject::connect(paymentServer, SIGNAL(receivedURI(QString)), &window, SLOT(handleURI(QString)));
+            QTimer::singleShot(100, paymentServer, SLOT(uiReady()));
+
+            app.exec();
+
+            window.hide();
+            window.setClientModel(0);
+            window.removeAllWallets();
+            guiref = 0;
         }
     } catch (std::exception& e) {
         handleRunawayException(&e);

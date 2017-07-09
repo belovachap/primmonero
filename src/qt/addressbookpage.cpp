@@ -2,7 +2,6 @@
 #include "ui_addressbookpage.h"
 
 #include "addresstablemodel.h"
-#include "optionsmodel.h"
 #include "bitcoingui.h"
 #include "editaddressdialog.h"
 #include "csvmodelwriter.h"
@@ -21,7 +20,6 @@ AddressBookPage::AddressBookPage(Mode mode, Tabs tab, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AddressBookPage),
     model(0),
-    optionsModel(0),
     mode(mode),
     tab(tab)
 {
@@ -153,11 +151,6 @@ void AddressBookPage::setModel(AddressTableModel *model)
     connect(model, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(selectNewAddress(QModelIndex,int,int)));
 
     selectionChanged();
-}
-
-void AddressBookPage::setOptionsModel(OptionsModel *optionsModel)
-{
-    this->optionsModel = optionsModel;
 }
 
 void AddressBookPage::on_copyAddress_clicked()
@@ -361,7 +354,6 @@ void AddressBookPage::on_showQRCode_clicked()
         QString label = index.sibling(index.row(), 0).data(Qt::EditRole).toString();
 
         QRCodeDialog *dialog = new QRCodeDialog(address, label, tab == ReceivingTab, this);
-        dialog->setModel(optionsModel);
         dialog->setAttribute(Qt::WA_DeleteOnClose);
         dialog->show();
     }

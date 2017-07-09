@@ -5,7 +5,6 @@
 
 #include "allocators.h" /* for SecureString */
 
-class OptionsModel;
 class AddressTableModel;
 class TransactionTableModel;
 class CWallet;
@@ -28,7 +27,7 @@ class WalletModel : public QObject
     Q_OBJECT
 
 public:
-    explicit WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent = 0);
+    explicit WalletModel(CWallet *wallet, QObject *parent = 0);
     ~WalletModel();
 
     enum StatusCode // Returned by sendCoins
@@ -51,7 +50,6 @@ public:
         Unlocked      // wallet->IsCrypted() && !wallet->IsLocked()
     };
 
-    OptionsModel *getOptionsModel();
     AddressTableModel *getAddressTableModel();
     TransactionTableModel *getTransactionTableModel();
 
@@ -111,10 +109,6 @@ public:
 
 private:
     CWallet *wallet;
-
-    // Wallet has an options model for wallet-specific options
-    // (transaction fee, for example)
-    OptionsModel *optionsModel;
 
     AddressTableModel *addressTableModel;
     TransactionTableModel *transactionTableModel;

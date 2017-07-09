@@ -4,7 +4,6 @@
 #include "bitcoinunits.h"
 #include "guiconstants.h"
 #include "guiutil.h"
-#include "optionsmodel.h"
 
 #include <QPixmap>
 #include <QUrl>
@@ -29,23 +28,14 @@ QRCodeDialog::QRCodeDialog(const QString &addr, const QString &label, bool enabl
 
     ui->btnSaveAs->setEnabled(false);
 
+    ui->lnReqAmount->setDisplayUnit(BitcoinUnits::BTC);
+
     genCode();
 }
 
 QRCodeDialog::~QRCodeDialog()
 {
     delete ui;
-}
-
-void QRCodeDialog::setModel(OptionsModel *model)
-{
-    this->model = model;
-
-    if (model)
-        connect(model, SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
-
-    // update the display unit, to not use the default ("BTC")
-    updateDisplayUnit();
 }
 
 void QRCodeDialog::genCode()
@@ -161,11 +151,3 @@ void QRCodeDialog::on_chkReqPayment_toggled(bool fChecked)
     genCode();
 }
 
-void QRCodeDialog::updateDisplayUnit()
-{
-    if (model)
-    {
-        // Update lnReqAmount with the current unit
-        ui->lnReqAmount->setDisplayUnit(model->getDisplayUnit());
-    }
-}

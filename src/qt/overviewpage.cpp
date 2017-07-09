@@ -4,7 +4,6 @@
 #include "clientmodel.h"
 #include "walletmodel.h"
 #include "bitcoinunits.h"
-#include "optionsmodel.h"
 #include "transactiontablemodel.h"
 #include "transactionfilterproxy.h"
 #include "guiutil.h"
@@ -133,7 +132,7 @@ OverviewPage::~OverviewPage()
 
 void OverviewPage::setBalance(qint64 balance, qint64 unconfirmedBalance, qint64 immatureBalance)
 {
-    int unit = walletModel->getOptionsModel()->getDisplayUnit();
+    int unit = BitcoinUnits::BTC;
     currentBalance = balance;
     currentUnconfirmedBalance = unconfirmedBalance;
     currentImmatureBalance = immatureBalance;
@@ -162,8 +161,7 @@ void OverviewPage::setClientModel(ClientModel *model)
 void OverviewPage::setWalletModel(WalletModel *model)
 {
     this->walletModel = model;
-    if(model && model->getOptionsModel())
-    {
+    if (model) {
         // Set up transaction list
         filter = new TransactionFilterProxy();
         filter->setSourceModel(model->getTransactionTableModel());
@@ -178,26 +176,15 @@ void OverviewPage::setWalletModel(WalletModel *model)
         // Keep up to date with wallet
         setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance());
         connect(model, SIGNAL(balanceChanged(qint64, qint64, qint64)), this, SLOT(setBalance(qint64, qint64, qint64)));
-
-        connect(model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
     }
 
-    // update the display unit, to not use the default ("BTC")
-    updateDisplayUnit();
-}
-
-void OverviewPage::updateDisplayUnit()
-{
-    if(walletModel && walletModel->getOptionsModel())
-    {
-        if(currentBalance != -1)
-            setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance);
-
-        // Update txdelegate->unit with the current unit
-        txdelegate->unit = walletModel->getOptionsModel()->getDisplayUnit();
-
-        ui->listTransactions->update();
+    if (currentBalance != -1) {
+        setBalance(currentBalance, currentUnconfirmedBalance, currentImmatureBalance);
     }
+
+    // Update txdelegate->unit with the current unit
+    txdelegate->unit = BitcoinUnits::BTC;
+    ui->listTransactions->update();
 }
 
 void OverviewPage::updateAlerts(const QString &warnings)

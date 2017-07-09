@@ -1,7 +1,6 @@
 #include "clientmodel.h"
 
 #include "guiconstants.h"
-#include "optionsmodel.h"
 #include "addresstablemodel.h"
 #include "transactiontablemodel.h"
 
@@ -15,11 +14,14 @@
 
 static const int64 nClientStartupTime = GetTime();
 
-ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
-    QObject(parent), optionsModel(optionsModel),
-    cachedNumBlocks(0), cachedNumBlocksOfPeers(0),
-    cachedReindexing(0), cachedImporting(0),
-    numBlocksAtStartup(-1), pollTimer(0)
+ClientModel::ClientModel(QObject *parent) :
+    QObject(parent),
+    cachedNumBlocks(0),
+    cachedNumBlocksOfPeers(0),
+    cachedReindexing(0),
+    cachedImporting(0),
+    numBlocksAtStartup(-1),
+    pollTimer(0)
 {
     pollTimer = new QTimer(this);
     pollTimer->setInterval(MODEL_UPDATE_DELAY);
@@ -138,11 +140,6 @@ int ClientModel::getNumBlocksOfPeers() const
 QString ClientModel::getStatusBarWarnings() const
 {
     return QString::fromStdString(GetWarnings("statusbar"));
-}
-
-OptionsModel *ClientModel::getOptionsModel()
-{
-    return optionsModel;
 }
 
 QString ClientModel::formatFullVersion() const

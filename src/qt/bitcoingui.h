@@ -69,7 +69,6 @@ public:
     QAction * getSendCoinsAction() { return sendCoinsAction; }
 
 protected:
-    void changeEvent(QEvent *e);
     void closeEvent(QCloseEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
     void dropEvent(QDropEvent *event);
@@ -177,8 +176,6 @@ private slots:
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
 
-    /** Show configuration dialog */
-    void optionsClicked();
     /** Show about dialog */
     void aboutClicked();
 #ifndef Q_OS_MAC
