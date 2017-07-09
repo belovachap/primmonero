@@ -1,11 +1,13 @@
 # Binaries
-/primmonero
-/testa-primmonero
-/src/primmonerad
-/src/testa-primmonerad
+/src/primmonero/primmonero
+/src/primmonero/testa-primmonero
+/src/primmonerad/primmonerad
+/src/primmonerad/testa-primmonerad
 
-# Qt preprocessor part
-/Makefile
-/*.qm
-/qrc_*.cpp
-/build
+# Primmonerad
+
+# Primmonero
+/src/primmonero/build/
+/src/primmonero/qrc_bitcoin.cpp
+/src/primmonero/Makefile
+
