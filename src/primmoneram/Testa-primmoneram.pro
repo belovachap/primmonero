@@ -199,7 +199,6 @@ HEADERS += bitcoingui.h \
     ../primmonerad/leveldb.h \
     ../primmonerad/threadsafety.h \
     ../primmonerad/limitedmap.h \
-    splashscreen.h \
     ../primmonerad/prime.h \
     ../primmonerad/checkpointsync.h
 
@@ -265,7 +264,6 @@ SOURCES += bitcoin.cpp \
     ../primmonerad/noui.cpp \
     ../primmonerad/leveldb.cpp \
     ../primmonerad/txdb.cpp \
-    splashscreen.cpp \
     ../primmonerad/prime.cpp \
     ../primmonerad/checkpointsync.cpp
 

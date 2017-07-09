@@ -3,6 +3,13 @@
  */
 
 #include <QApplication>
+#include <QMessageBox>
+#include <QTextCodec>
+#include <QLocale>
+#include <QSplashScreen>
+#include <QTimer>
+#include <QTranslator>
+#include <QLibraryInfo>
 
 #include "bitcoingui.h"
 #include "clientmodel.h"
@@ -13,18 +20,6 @@
 #include "util.h"
 #include "ui_interface.h"
 #include "paymentserver.h"
-#include "splashscreen.h"
-
-#include <QMessageBox>
-#include <QTextCodec>
-#include <QLocale>
-#include <QTimer>
-#include <QTranslator>
-#include <QLibraryInfo>
-
-#ifdef Q_OS_MAC
-#include "macdockiconhandler.h"
-#endif
 
 #if defined(BITCOIN_NEED_QT_PLUGINS) && !defined(_BITCOIN_QT_PLUGINS_INCLUDED)
 #define _BITCOIN_QT_PLUGINS_INCLUDED
@@ -44,7 +39,7 @@ Q_DECLARE_METATYPE(bool*)
 
 // Need a global reference for the notifications to find the GUI
 static BitcoinGUI *guiref;
-static SplashScreen *splashref;
+static QSplashScreen *splashref;
 
 static bool ThreadSafeMessageBox(const std::string& message, const std::string& caption, unsigned int style)
 {
@@ -191,20 +186,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-#ifdef Q_OS_MAC
-    // on mac, also change the icon now because it would look strange to have a testnet splash (green) and a std app icon (orange)
-    if(GetBoolArg("-testnet")) {
-        MacDockIconHandler::instance()->setIcon(QIcon(":icons/bitcoin_testnet"));
-    }
-#endif
-
-    SplashScreen splash(QPixmap(), 0);
-    if (GetBoolArg("-splash", true) && !GetBoolArg("-min"))
-    {
-        splash.show();
-        splash.setAutoFillBackground(true);
-        splashref = &splash;
-    }
+    QSplashScreen splash(QPixmap(":/images/splash"), 0);
+    splash.show();
+    splash.setAutoFillBackground(true);
+    splashref = &splash;
 
     app.processEvents();
     app.setQuitOnLastWindowClosed(false);
