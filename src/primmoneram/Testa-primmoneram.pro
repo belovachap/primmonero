@@ -2,7 +2,7 @@
 # Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
 TEMPLATE = app
-TARGET = primmonero
+TARGET = testa-primmoneram
 VERSION = 0.0.0
 INCLUDEPATH += ./ ../primmonerad ../primmonerad/json
 QT += network
@@ -281,6 +281,14 @@ FORMS += forms/sendcoinsdialog.ui \
     forms/askpassphrasedialog.ui \
     forms/rpcconsole.ui
 
+# Testa programo transpasoj
+SOURCES += test/test_main.cpp \
+           test/uritests.cpp
+HEADERS += test/uritests.h
+DEPENDPATH += test
+QT += testlib
+DEFINES += TESTA_PROGRAMO
+
 # "Other files" to show in Qt Creator
 OTHER_FILES += README.md \
     doc/*.rst \
@@ -321,25 +329,10 @@ isEmpty(BOOST_INCLUDE_PATH) {
     macx:BOOST_INCLUDE_PATH = /opt/local/include
 }
 
-win32:DEFINES += WIN32
-win32:RC_FILE = res/bitcoin-qt.rc
-
-win32:!contains(MINGW_THREAD_BUGFIX, 0) {
-    # At least qmake's win32-g++-cross profile is missing the -lmingwthrd
-    # thread-safety flag. GCC has -mthreads to enable this, but it doesn't
-    # work with static linking. -lmingwthrd must come BEFORE -lmingw, so
-    # it is prepended to QMAKE_LIBS_QT_ENTRY.
-    # It can be turned off with MINGW_THREAD_BUGFIX=0, just in case it causes
-    # any problems on some untested qmake profile now or in the future.
-    DEFINES += _MT
-    QMAKE_LIBS_QT_ENTRY = -lmingwthrd $$QMAKE_LIBS_QT_ENTRY
-}
-
 DEFINES += LINUX
 LIBS += -lrt
 # _FILE_OFFSET_BITS=64 lets 32-bit fopen transparently support large files.
 DEFINES += _FILE_OFFSET_BITS=64
-
 
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH

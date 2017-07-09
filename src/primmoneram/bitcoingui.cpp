@@ -59,7 +59,7 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     prevBlocks(0)
 {
     restoreWindowGeometry();
-    setWindowTitle("Primmonera Monujo");
+    setWindowTitle("primmoneram");
     QApplication::setWindowIcon(QIcon(":icons/primecoin"));
     setWindowIcon(QIcon(":icons/primecoin"));
 
@@ -316,7 +316,7 @@ void BitcoinGUI::removeAllWallets()
 void BitcoinGUI::createTrayIcon()
 {
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setToolTip("Primmonera kliento");
+    trayIcon->setToolTip("Primmonera monujo");
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     trayIcon->show();
 
@@ -522,7 +522,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)
 {
-    QString strTitle = "Primmonero"; // default title
+    QString strTitle = "primmoneram"; // default title
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;

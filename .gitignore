@@ -1,13 +1,11 @@
-# Binaries
-/src/primmonero/primmonero
-/src/primmonero/testa-primmonero
+# primmonerad (a.k.k. demono)
 /src/primmonerad/primmonerad
 /src/primmonerad/testa-primmonerad
 
-# Primmonerad
-
-# Primmonero
-/src/primmonero/build/
-/src/primmonero/qrc_bitcoin.cpp
-/src/primmonero/Makefile
+# primmoneram (a.k.k. monujo)
+/src/primmoneram/Makefile
+/src/primmoneram/build/
+/src/primmoneram/primmoneram
+/src/primmoneram/testa-primmoneram
+/src/primmoneram/qrc_bitcoin.cpp
 
