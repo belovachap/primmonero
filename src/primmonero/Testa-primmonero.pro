@@ -128,7 +128,6 @@ HEADERS += bitcoingui.h \
     addresstablemodel.h \
     sendcoinsdialog.h \
     addressbookpage.h \
-    signverifymessagedialog.h \
     aboutdialog.h \
     editaddressdialog.h \
     bitcoinaddressvalidator.h \
@@ -210,7 +209,6 @@ SOURCES += bitcoin.cpp \
     addresstablemodel.cpp \
     sendcoinsdialog.cpp \
     addressbookpage.cpp \
-    signverifymessagedialog.cpp \
     aboutdialog.cpp \
     editaddressdialog.cpp \
     bitcoinaddressvalidator.cpp \
@@ -275,7 +273,6 @@ RESOURCES += bitcoin.qrc
 
 FORMS += forms/sendcoinsdialog.ui \
     forms/addressbookpage.ui \
-    forms/signverifymessagedialog.ui \
     forms/aboutdialog.ui \
     forms/editaddressdialog.ui \
     forms/transactiondescdialog.ui \

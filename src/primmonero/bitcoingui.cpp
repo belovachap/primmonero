@@ -214,10 +214,6 @@ void BitcoinGUI::createActions()
     sekurkopiuMonujoFaro->setStatusTip(tr("Sekurkopiu monujon."));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
-    signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
-    signMessageAction->setStatusTip(tr("Sign messages with your Primecoin addresses to prove you own them"));
-    verifyMessageAction = new QAction(QIcon(":/icons/transaction_0"), tr("&Verify message..."), this);
-    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Primecoin addresses"));
 
     openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Debug window"), this);
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
@@ -229,8 +225,6 @@ void BitcoinGUI::createActions()
     connect(encryptWalletAction, SIGNAL(triggered(bool)), walletFrame, SLOT(encryptWallet(bool)));
     connect(sekurkopiuMonujoFaro, SIGNAL(triggered()), walletFrame, SLOT(sekurkopiuMonujo()));
     connect(changePassphraseAction, SIGNAL(triggered()), walletFrame, SLOT(changePassphrase()));
-    connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
-    connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
 }
 
 void BitcoinGUI::createMenuBar()
@@ -239,8 +233,6 @@ void BitcoinGUI::createMenuBar()
 
     QMenu *faroj = appMenuBar->addMenu("Faroj");
     faroj->addAction(sekurkopiuMonujoFaro);
-    faroj->addAction(signMessageAction);
-    faroj->addAction(verifyMessageAction);
     faroj->addAction(encryptWalletAction);
     faroj->addAction(changePassphraseAction);
     faroj->addSeparator();
@@ -351,9 +343,6 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addAction(sendCoinsAction);
     trayIconMenu->addAction(receiveCoinsAction);
     trayIconMenu->addSeparator();
-    trayIconMenu->addAction(signMessageAction);
-    trayIconMenu->addAction(verifyMessageAction);
-    trayIconMenu->addSeparator();
     trayIconMenu->addAction(openRPCConsoleAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(forlasuFaro);
@@ -420,16 +409,6 @@ void BitcoinGUI::gotoReceiveCoinsPage()
 void BitcoinGUI::gotoSendCoinsPage(QString addr)
 {
     if (walletFrame) walletFrame->gotoSendCoinsPage(addr);
-}
-
-void BitcoinGUI::gotoSignMessageTab(QString addr)
-{
-    if (walletFrame) walletFrame->gotoSignMessageTab(addr);
-}
-
-void BitcoinGUI::gotoVerifyMessageTab(QString addr)
-{
-    if (walletFrame) walletFrame->gotoVerifyMessageTab(addr);
 }
 
 void BitcoinGUI::setNumConnections(int count)

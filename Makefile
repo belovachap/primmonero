@@ -24,9 +24,9 @@ puras-primmonerad:
 .PHONY: puras-primmonero
 puras-primmonero:
 	cd src/primmonero && qmake Testa-primmonero.pro
-	$(MAKE) -C src/primmonero clean
+	$(MAKE) -C src/primmonero clean && rm src/primmonero/Makefile
 	cd src/primmonero && qmake Primmonero.pro
-	$(MAKE) -C src/primmonero clean
+	$(MAKE) -C src/primmonero clean && rm src/primmonero/Makefile
 
 # Testoj
 .PHONY: testoj
