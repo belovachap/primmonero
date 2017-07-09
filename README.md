@@ -1,9 +1,11 @@
 Primmonero
 ==========
 
-Tradukoj:
+Tradukoj :globe_with_meridians::
 
-* Primecoin (en)
+* Primecoin (en :us:)
+
+:smile: :green_heart: :star:
 
 Primmonero estas projekto ĉirkaŭ primmonera servilo (a.k.k. primmonera demono aŭ
 `primmonerad`) kaj primmonera kliento (a.k.k. primmonera monujo aŭ
