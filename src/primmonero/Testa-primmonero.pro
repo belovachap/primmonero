@@ -46,13 +46,6 @@ contains(RELEASE, 1) {
     }
 }
 
-macx {
-    # Primecoin HP: Always optimize on OS X
-    QMAKE_CXXFLAGS += -O2
-    QMAKE_CFLAGS += -O2
-    QMAKE_OBJECTIVE_CFLAGS += -O2
-}
-
 !win32 {
     # for extra security against potential buffer overflows: enable GCCs Stack Smashing Protection
     QMAKE_CXXFLAGS *= -fstack-protector-all
@@ -67,14 +60,6 @@ win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
 # on Windows x86: enable GCC large address aware linker flag
 !contains(QMAKE_HOST.arch, x86_64) {
 	win32:QMAKE_LFLAGS *= -Wl,--large-address-aware
-}
-
-# use: qmake "USE_QRCODE=1"
-# libqrencode (http://fukuchi.org/works/qrencode/index.en.html) must be installed for support
-contains(USE_QRCODE, 1) {
-    message(Building with QRCode support)
-    DEFINES += USE_QRCODE
-    LIBS += -lqrencode
 }
 
 # use: qmake "USE_DBUS=1"
@@ -298,12 +283,6 @@ FORMS += forms/sendcoinsdialog.ui \
     forms/sendcoinsentry.ui \
     forms/askpassphrasedialog.ui \
     forms/rpcconsole.ui
-
-contains(USE_QRCODE, 1) {
-HEADERS += qrcodedialog.h
-SOURCES += qrcodedialog.cpp
-FORMS += forms/qrcodedialog.ui
-}
 
 # Testa programo transpasoj
 SOURCES += test/test_main.cpp \
