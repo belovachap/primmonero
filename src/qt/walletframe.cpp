@@ -110,9 +110,9 @@ void WalletFrame::encryptWallet(bool status)
     walletStack->encryptWallet(status);
 }
 
-void WalletFrame::backupWallet()
+void WalletFrame::sekurkopiuMonujo()
 {
-    walletStack->backupWallet();
+    walletStack->sekurkopiuMonujo();
 }
 
 void WalletFrame::changePassphrase()

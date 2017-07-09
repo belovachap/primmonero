@@ -291,7 +291,7 @@ bool WalletModel::changePassphrase(const SecureString &oldPass, const SecureStri
     return retval;
 }
 
-bool WalletModel::backupWallet(const QString &filename)
+bool WalletModel::sekurkopiuMonujo(const QString &filename)
 {
     return BackupWallet(*wallet, filename.toLocal8Bit().data());
 }

@@ -87,7 +87,7 @@ private:
     QMenuBar *appMenuBar;
     QAction *overviewAction;
     QAction *historyAction;
-    QAction *quitAction;
+    QAction *forlasuFaro;
     QAction *sendCoinsAction;
     QAction *addressBookAction;
     QAction *signMessageAction;
@@ -97,7 +97,7 @@ private:
     QAction *optionsAction;
     QAction *toggleHideAction;
     QAction *encryptWalletAction;
-    QAction *backupWalletAction;
+    QAction *sekurkopiuMonujoFaro;
     QAction *changePassphraseAction;
     QAction *aboutQtAction;
     QAction *openRPCConsoleAction;

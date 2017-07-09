@@ -229,12 +229,12 @@ void WalletView::encryptWallet(bool status)
     setEncryptionStatus();
 }
 
-void WalletView::backupWallet()
+void WalletView::sekurkopiuMonujo()
 {
     QString saveDir = QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation);
-    QString filename = QFileDialog::getSaveFileName(this, tr("Backup Wallet"), saveDir, tr("Wallet Data (*.dat)"));
+    QString filename = QFileDialog::getSaveFileName(this, "Sekurkopiu Monujo", saveDir, "Monujaj Datumoj (*.dat)");
     if (!filename.isEmpty()) {
-        if (!walletModel->backupWallet(filename)) {
+        if (!walletModel->sekurkopiuMonujo(filename)) {
             gui->message(tr("Backup Failed"), tr("There was an error trying to save the wallet data to the new location."),
                       CClientUIInterface::MSG_ERROR);
         }

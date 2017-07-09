@@ -128,10 +128,10 @@ void WalletStack::encryptWallet(bool status)
     if (walletView) walletView->encryptWallet(status);
 }
 
-void WalletStack::backupWallet()
+void WalletStack::sekurkopiuMonujo()
 {
     WalletView *walletView = (WalletView*)currentWidget();
-    if (walletView) walletView->backupWallet();
+    if (walletView) walletView->sekurkopiuMonujo();
 }
 
 void WalletStack::changePassphrase()

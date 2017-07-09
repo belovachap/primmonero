@@ -4,29 +4,9 @@
 // Kopirajto 2017 Chapman Shoop
 // Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
+#include <iostream>
+
 #include <QApplication>
-
-#include "bitcoingui.h"
-
-#include "transactiontablemodel.h"
-#include "aboutdialog.h"
-#include "clientmodel.h"
-#include "walletmodel.h"
-#include "walletframe.h"
-#include "transactiondescdialog.h"
-#include "bitcoinunits.h"
-#include "guiconstants.h"
-#include "notificator.h"
-#include "guiutil.h"
-#include "rpcconsole.h"
-#include "ui_interface.h"
-#include "wallet.h"
-#include "init.h"
-
-#ifdef Q_OS_MAC
-#include "macdockiconhandler.h"
-#endif
-
 #include <QMenuBar>
 #include <QMenu>
 #include <QIcon>
@@ -48,7 +28,22 @@
 #include <QDesktopWidget>
 #include <QListWidget>
 
-#include <iostream>
+#include "aboutdialog.h"
+#include "bitcoingui.h"
+#include "bitcoinunits.h"
+#include "clientmodel.h"
+#include "guiconstants.h"
+#include "guiutil.h"
+#include "init.h"
+#include "notificator.h"
+#include "rpcconsole.h"
+#include "transactiondescdialog.h"
+#include "transactiontablemodel.h"
+#include "ui_interface.h"
+#include "wallet.h"
+#include "walletframe.h"
+#include "walletmodel.h"
+
 
 const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
@@ -64,14 +59,10 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     prevBlocks(0)
 {
     restoreWindowGeometry();
-    setWindowTitle(tr("Primecoin High Performance") + " - " + tr("Wallet"));
-#ifndef Q_OS_MAC
+    setWindowTitle("Primmonera Monujo");
     QApplication::setWindowIcon(QIcon(":icons/primecoin"));
     setWindowIcon(QIcon(":icons/primecoin"));
-#else
-    setUnifiedTitleAndToolBarOnMac(true);
-    QApplication::setAttribute(Qt::AA_DontShowIconsInMenus);
-#endif
+
     // Create wallet frame and make it the central widget
     walletFrame = new WalletFrame(this);
     setCentralWidget(walletFrame);
@@ -146,12 +137,11 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
 BitcoinGUI::~BitcoinGUI()
 {
     saveWindowGeometry();
-    if(trayIcon) // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
+
+    // Hide tray icon, as deleting will let it linger until quit (on Ubuntu)
+    if (trayIcon) {
         trayIcon->hide();
-#ifdef Q_OS_MAC
-    delete appMenuBar;
-    MacDockIconHandler::instance()->setMainWindow(NULL);
-#endif
+    }
 }
 
 void BitcoinGUI::createActions()
@@ -204,10 +194,10 @@ void BitcoinGUI::createActions()
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(addressBookAction, SIGNAL(triggered()), this, SLOT(gotoAddressBookPage()));
 
-    quitAction = new QAction(QIcon(":/icons/quit"), tr("E&xit"), this);
-    quitAction->setStatusTip(tr("Quit application"));
-    quitAction->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
-    quitAction->setMenuRole(QAction::QuitRole);
+    forlasuFaro = new QAction(QIcon(":/icons/quit"), "Forlasu", this);
+    forlasuFaro->setStatusTip(tr("Forlasu programon."));
+    forlasuFaro->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    forlasuFaro->setMenuRole(QAction::QuitRole);
     aboutAction = new QAction(QIcon(":/icons/primecoin"), tr("&About Primecoin"), this);
     aboutAction->setStatusTip(tr("Show information about Primecoin"));
     aboutAction->setMenuRole(QAction::AboutRole);
@@ -220,8 +210,8 @@ void BitcoinGUI::createActions()
     encryptWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Encrypt Wallet..."), this);
     encryptWalletAction->setStatusTip(tr("Encrypt the private keys that belong to your wallet"));
     encryptWalletAction->setCheckable(true);
-    backupWalletAction = new QAction(QIcon(":/icons/filesave"), tr("&Backup Wallet..."), this);
-    backupWalletAction->setStatusTip(tr("Backup wallet to another location"));
+    sekurkopiuMonujoFaro = new QAction(QIcon(":/icons/filesave"), tr("Sekurkopiu Monujo..."), this);
+    sekurkopiuMonujoFaro->setStatusTip(tr("Sekurkopiu monujon."));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
     signMessageAction = new QAction(QIcon(":/icons/edit"), tr("Sign &message..."), this);
@@ -232,12 +222,12 @@ void BitcoinGUI::createActions()
     openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Debug window"), this);
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
 
-    connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+    connect(forlasuFaro, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
     connect(toggleHideAction, SIGNAL(triggered()), this, SLOT(toggleHidden()));
     connect(encryptWalletAction, SIGNAL(triggered(bool)), walletFrame, SLOT(encryptWallet(bool)));
-    connect(backupWalletAction, SIGNAL(triggered()), walletFrame, SLOT(backupWallet()));
+    connect(sekurkopiuMonujoFaro, SIGNAL(triggered()), walletFrame, SLOT(sekurkopiuMonujo()));
     connect(changePassphraseAction, SIGNAL(triggered()), walletFrame, SLOT(changePassphrase()));
     connect(signMessageAction, SIGNAL(triggered()), this, SLOT(gotoSignMessageTab()));
     connect(verifyMessageAction, SIGNAL(triggered()), this, SLOT(gotoVerifyMessageTab()));
@@ -245,31 +235,22 @@ void BitcoinGUI::createActions()
 
 void BitcoinGUI::createMenuBar()
 {
-#ifdef Q_OS_MAC
-    // Create a decoupled menu bar on Mac which stays even if the window is closed
-    appMenuBar = new QMenuBar();
-#else
-    // Get the main window's menu bar on other platforms
     appMenuBar = menuBar();
-#endif
 
-    // Configure the menus
-    QMenu *file = appMenuBar->addMenu(tr("&File"));
-    file->addAction(backupWalletAction);
-    file->addAction(signMessageAction);
-    file->addAction(verifyMessageAction);
-    file->addSeparator();
-    file->addAction(quitAction);
+    QMenu *faroj = appMenuBar->addMenu("Faroj");
+    faroj->addAction(sekurkopiuMonujoFaro);
+    faroj->addAction(signMessageAction);
+    faroj->addAction(verifyMessageAction);
+    faroj->addAction(encryptWalletAction);
+    faroj->addAction(changePassphraseAction);
+    faroj->addSeparator();
+    faroj->addAction(forlasuFaro);
 
-    QMenu *settings = appMenuBar->addMenu(tr("&Settings"));
-    settings->addAction(encryptWalletAction);
-    settings->addAction(changePassphraseAction);
-
-    QMenu *help = appMenuBar->addMenu(tr("&Help"));
-    help->addAction(openRPCConsoleAction);
-    help->addSeparator();
-    help->addAction(aboutAction);
-    help->addAction(aboutQtAction);
+    QMenu *pri = appMenuBar->addMenu("Pri");
+    pri->addAction(openRPCConsoleAction);
+    pri->addSeparator();
+    pri->addAction(aboutAction);
+    pri->addAction(aboutQtAction);
 }
 
 void BitcoinGUI::createToolBars()
@@ -292,12 +273,9 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         if(clientModel->isTestNet())
         {
             setWindowTitle(windowTitle() + QString(" ") + tr("[testnet]"));
-#ifndef Q_OS_MAC
             QApplication::setWindowIcon(QIcon(":icons/primecoin_testnet"));
             setWindowIcon(QIcon(":icons/primecoin_testnet"));
-#else
-            MacDockIconHandler::instance()->setIcon(QIcon(":icons/primecoin_testnet"));
-#endif
+
             if(trayIcon)
             {
                 // Just attach " [testnet]" to the existing tooltip
@@ -345,13 +323,10 @@ void BitcoinGUI::removeAllWallets()
 
 void BitcoinGUI::createTrayIcon()
 {
-#ifndef Q_OS_MAC
     trayIcon = new QSystemTrayIcon(this);
-
-    trayIcon->setToolTip(tr("Primecoin client"));
+    trayIcon->setToolTip("Primmonera kliento");
     trayIcon->setIcon(QIcon(":/icons/toolbar"));
     trayIcon->show();
-#endif
 
     notificator = new Notificator(QApplication::applicationName(), trayIcon);
 }
@@ -359,22 +334,16 @@ void BitcoinGUI::createTrayIcon()
 void BitcoinGUI::createTrayIconMenu()
 {
     QMenu *trayIconMenu;
-#ifndef Q_OS_MAC
-    // return if trayIcon is unset (only on non-Mac OSes)
-    if (!trayIcon)
+    // return if trayIcon is unset
+    if (!trayIcon) {
         return;
+    }
 
     trayIconMenu = new QMenu(this);
     trayIcon->setContextMenu(trayIconMenu);
 
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
             this, SLOT(trayIconActivated(QSystemTrayIcon::ActivationReason)));
-#else
-    // Note: On Mac, the dock icon is used to provide the tray's functionality.
-    MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
-    dockIconHandler->setMainWindow((QMainWindow *)this);
-    trayIconMenu = dockIconHandler->dockMenu();
-#endif
 
     // Configuration of the tray icon (or dock icon) icon menu
     trayIconMenu->addAction(toggleHideAction);
@@ -386,13 +355,10 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addAction(verifyMessageAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(openRPCConsoleAction);
-#ifndef Q_OS_MAC // This is built-in on Mac
     trayIconMenu->addSeparator();
-    trayIconMenu->addAction(quitAction);
-#endif
+    trayIconMenu->addAction(forlasuFaro);
 }
 
-#ifndef Q_OS_MAC
 void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     if(reason == QSystemTrayIcon::Trigger)
@@ -401,7 +367,6 @@ void BitcoinGUI::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
         toggleHideAction->trigger();
     }
 }
-#endif
 
 void BitcoinGUI::saveWindowGeometry()
 {
@@ -578,7 +543,7 @@ void BitcoinGUI::setNumBlocks(int count, int nTotalBlocks)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)
 {
-    QString strTitle = tr("Primecoin High Performance"); // default title
+    QString strTitle = "Primmonero"; // default title
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
