@@ -2,9 +2,9 @@
 # Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
 TEMPLATE = app
-TARGET = primmoneram
+TARGET = primmonera-monujo
 VERSION = 0.0.0
-INCLUDEPATH += ./ ../primmonerad ../primmonerad/json
+INCLUDEPATH += ./ ../servilo ../servilo/json
 QT += network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
@@ -91,25 +91,16 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
     QTPLUGIN += qtaccessiblewidgets
 }
 
-INCLUDEPATH += ../primmonerad/leveldb/include ../primmonerad/leveldb/helpers
-LIBS += $$PWD/../primmonerad/leveldb/libleveldb.a $$PWD/../primmonerad/leveldb/libmemenv.a
-!win32 {
-    # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
-    genleveldb.commands = cd $$PWD/../primmonerad/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
-} else {
-    # make an educated guess about what the ranlib command is called
-    isEmpty(QMAKE_RANLIB) {
-        QMAKE_RANLIB = $$replace(QMAKE_STRIP, strip, ranlib)
-    }
-    LIBS += -lshlwapi
-    genleveldb.commands = cd $$PWD/../primmonerad/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX TARGET_OS=OS_WINDOWS_CROSSCOMPILE $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a && $$QMAKE_RANLIB $$PWD/../primmonerad/leveldb/libleveldb.a && $$QMAKE_RANLIB $$PWD/../primmonerad/leveldb/libmemenv.a
-}
-genleveldb.target = $$PWD/../primmonerad/leveldb/libleveldb.a
+INCLUDEPATH += ../servilo/leveldb/include ../servilo/leveldb/helpers
+LIBS += $$PWD/../servilo/leveldb/libleveldb.a $$PWD/../servilo/leveldb/libmemenv.a
+# we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
+genleveldb.commands = cd $$PWD/../servilo/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
+genleveldb.target = $$PWD/../servilo/leveldb/libleveldb.a
 genleveldb.depends = FORCE
-PRE_TARGETDEPS += $$PWD/../primmonerad/leveldb/libleveldb.a
+PRE_TARGETDEPS += $$PWD/../servilo/leveldb/libleveldb.a
 QMAKE_EXTRA_TARGETS += genleveldb
 # Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
-QMAKE_CLEAN += $$PWD/../primmonerad/leveldb/libleveldb.a; cd $$PWD/../primmonerad/leveldb ; $(MAKE) clean
+QMAKE_CLEAN += $$PWD/../servilo/leveldb/libleveldb.a; cd $$PWD/../servilo/leveldb ; $(MAKE) clean
 
 # Regenerate build/build.h
 genbuild.depends = FORCE
@@ -122,7 +113,7 @@ DEFINES += HAVE_BUILD_INFO
 QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
 
 # Input
-DEPENDPATH +=  ./ ../primmonerad ../primmonerad/json
+DEPENDPATH +=  ./ ../servilo ../servilo/json
 HEADERS += bitcoingui.h \
     transactiontablemodel.h \
     addresstablemodel.h \
@@ -131,36 +122,36 @@ HEADERS += bitcoingui.h \
     aboutdialog.h \
     editaddressdialog.h \
     bitcoinaddressvalidator.h \
-    ../primmonerad/alert.h \
-    ../primmonerad/addrman.h \
-    ../primmonerad/base58.h \
-    ../primmonerad/bignum.h \
-    ../primmonerad/checkpoints.h \
-    ../primmonerad/compat.h \
-    ../primmonerad/sync.h \
-    ../primmonerad/util.h \
-    ../primmonerad/hash.h \
-    ../primmonerad/uint256.h \
-    ../primmonerad/serialize.h \
-    ../primmonerad/main.h \
-    ../primmonerad/net.h \
-    ../primmonerad/key.h \
-    ../primmonerad/db.h \
-    ../primmonerad/walletdb.h \
-    ../primmonerad/script.h \
-    ../primmonerad/init.h \
-    ../primmonerad/bloom.h \
-    ../primmonerad/mruset.h \
-    ../primmonerad/checkqueue.h \
-    ../primmonerad/json/json_spirit_writer_template.h \
-    ../primmonerad/json/json_spirit_writer.h \
-    ../primmonerad/json/json_spirit_value.h \
-    ../primmonerad/json/json_spirit_utils.h \
-    ../primmonerad/json/json_spirit_stream_reader.h \
-    ../primmonerad/json/json_spirit_reader_template.h \
-    ../primmonerad/json/json_spirit_reader.h \
-    ../primmonerad/json/json_spirit_error_position.h \
-    ../primmonerad/json/json_spirit.h \
+    ../servilo/alert.h \
+    ../servilo/addrman.h \
+    ../servilo/base58.h \
+    ../servilo/bignum.h \
+    ../servilo/checkpoints.h \
+    ../servilo/compat.h \
+    ../servilo/sync.h \
+    ../servilo/util.h \
+    ../servilo/hash.h \
+    ../servilo/uint256.h \
+    ../servilo/serialize.h \
+    ../servilo/main.h \
+    ../servilo/net.h \
+    ../servilo/key.h \
+    ../servilo/db.h \
+    ../servilo/walletdb.h \
+    ../servilo/script.h \
+    ../servilo/init.h \
+    ../servilo/bloom.h \
+    ../servilo/mruset.h \
+    ../servilo/checkqueue.h \
+    ../servilo/json/json_spirit_writer_template.h \
+    ../servilo/json/json_spirit_writer.h \
+    ../servilo/json/json_spirit_value.h \
+    ../servilo/json/json_spirit_utils.h \
+    ../servilo/json/json_spirit_stream_reader.h \
+    ../servilo/json/json_spirit_reader_template.h \
+    ../servilo/json/json_spirit_reader.h \
+    ../servilo/json/json_spirit_error_position.h \
+    ../servilo/json/json_spirit.h \
     clientmodel.h \
     guiutil.h \
     transactionrecord.h \
@@ -169,38 +160,38 @@ HEADERS += bitcoingui.h \
     transactiondesc.h \
     transactiondescdialog.h \
     bitcoinamountfield.h \
-    ../primmonerad/wallet.h \
-    ../primmonerad/keystore.h \
+    ../servilo/wallet.h \
+    ../servilo/keystore.h \
     transactionfilterproxy.h \
     transactionview.h \
     walletmodel.h \
     walletview.h \
     walletstack.h \
     walletframe.h \
-    ../primmonerad/bitcoinrpc.h \
+    ../servilo/bitcoinrpc.h \
     overviewpage.h \
     csvmodelwriter.h \
-    ../primmonerad/crypter.h \
+    ../servilo/crypter.h \
     sendcoinsentry.h \
     qvalidatedlineedit.h \
     bitcoinunits.h \
     qvaluecombobox.h \
     askpassphrasedialog.h \
-    ../primmonerad/protocol.h \
+    ../servilo/protocol.h \
     notificator.h \
     paymentserver.h \
-    ../primmonerad/allocators.h \
-    ../primmonerad/ui_interface.h \
+    ../servilo/allocators.h \
+    ../servilo/ui_interface.h \
     rpcconsole.h \
-    ../primmonerad/version.h \
-    ../primmonerad/netbase.h \
-    ../primmonerad/clientversion.h \
-    ../primmonerad/txdb.h \
-    ../primmonerad/leveldb.h \
-    ../primmonerad/threadsafety.h \
-    ../primmonerad/limitedmap.h \
-    ../primmonerad/prime.h \
-    ../primmonerad/checkpointsync.h
+    ../servilo/version.h \
+    ../servilo/netbase.h \
+    ../servilo/clientversion.h \
+    ../servilo/txdb.h \
+    ../servilo/leveldb.h \
+    ../servilo/threadsafety.h \
+    ../servilo/limitedmap.h \
+    ../servilo/prime.h \
+    ../servilo/checkpointsync.h
 
 SOURCES += bitcoin.cpp \
     bitcoingui.cpp \
@@ -211,22 +202,22 @@ SOURCES += bitcoin.cpp \
     aboutdialog.cpp \
     editaddressdialog.cpp \
     bitcoinaddressvalidator.cpp \
-    ../primmonerad/alert.cpp \
-    ../primmonerad/version.cpp \
-    ../primmonerad/sync.cpp \
-    ../primmonerad/util.cpp \
-    ../primmonerad/hash.cpp \
-    ../primmonerad/netbase.cpp \
-    ../primmonerad/key.cpp \
-    ../primmonerad/script.cpp \
-    ../primmonerad/main.cpp \
-    ../primmonerad/init.cpp \
-    ../primmonerad/net.cpp \
-    ../primmonerad/bloom.cpp \
-    ../primmonerad/checkpoints.cpp \
-    ../primmonerad/addrman.cpp \
-    ../primmonerad/db.cpp \
-    ../primmonerad/walletdb.cpp \
+    ../servilo/alert.cpp \
+    ../servilo/version.cpp \
+    ../servilo/sync.cpp \
+    ../servilo/util.cpp \
+    ../servilo/hash.cpp \
+    ../servilo/netbase.cpp \
+    ../servilo/key.cpp \
+    ../servilo/script.cpp \
+    ../servilo/main.cpp \
+    ../servilo/init.cpp \
+    ../servilo/net.cpp \
+    ../servilo/bloom.cpp \
+    ../servilo/checkpoints.cpp \
+    ../servilo/addrman.cpp \
+    ../servilo/db.cpp \
+    ../servilo/walletdb.cpp \
     clientmodel.cpp \
     guiutil.cpp \
     transactionrecord.cpp \
@@ -234,38 +225,38 @@ SOURCES += bitcoin.cpp \
     transactiondesc.cpp \
     transactiondescdialog.cpp \
     bitcoinamountfield.cpp \
-    ../primmonerad/wallet.cpp \
-    ../primmonerad/keystore.cpp \
+    ../servilo/wallet.cpp \
+    ../servilo/keystore.cpp \
     transactionfilterproxy.cpp \
     transactionview.cpp \
     walletmodel.cpp \
     walletview.cpp \
     walletstack.cpp \
     walletframe.cpp \
-    ../primmonerad/bitcoinrpc.cpp \
-    ../primmonerad/rpcdump.cpp \
-    ../primmonerad/rpcnet.cpp \
-    ../primmonerad/rpcmining.cpp \
-    ../primmonerad/rpcwallet.cpp \
-    ../primmonerad/rpcblockchain.cpp \
-    ../primmonerad/rpcrawtransaction.cpp \
+    ../servilo/bitcoinrpc.cpp \
+    ../servilo/rpcdump.cpp \
+    ../servilo/rpcnet.cpp \
+    ../servilo/rpcmining.cpp \
+    ../servilo/rpcwallet.cpp \
+    ../servilo/rpcblockchain.cpp \
+    ../servilo/rpcrawtransaction.cpp \
     overviewpage.cpp \
     csvmodelwriter.cpp \
-    ../primmonerad/crypter.cpp \
+    ../servilo/crypter.cpp \
     sendcoinsentry.cpp \
     qvalidatedlineedit.cpp \
     bitcoinunits.cpp \
     qvaluecombobox.cpp \
     askpassphrasedialog.cpp \
-    ../primmonerad/protocol.cpp \
+    ../servilo/protocol.cpp \
     notificator.cpp \
     paymentserver.cpp \
     rpcconsole.cpp \
-    ../primmonerad/noui.cpp \
-    ../primmonerad/leveldb.cpp \
-    ../primmonerad/txdb.cpp \
-    ../primmonerad/prime.cpp \
-    ../primmonerad/checkpointsync.cpp
+    ../servilo/noui.cpp \
+    ../servilo/leveldb.cpp \
+    ../servilo/txdb.cpp \
+    ../servilo/prime.cpp \
+    ../servilo/checkpointsync.cpp
 
 RESOURCES += bitcoin.qrc
 
@@ -284,8 +275,8 @@ OTHER_FILES += README.md \
     doc/*.rst \
     doc/*.txt \
     res/bitcoin-qt.rc \
-    ../primmonerad/test/*.cpp \
-    ../primmonerad/test/*.h \
+    ../servilo/test/*.cpp \
+    ../servilo/test/*.h \
     test/*.cpp \
     test/*.h
 

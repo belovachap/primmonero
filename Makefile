@@ -14,43 +14,43 @@ all:
 # Puri
 .PHONY: puras
 puras:
-	make puras-primmonerad
-	make puras-primmoneram
+	make puras-servilo
+	make puras-monujo
 
-.PHONY: puras-primmonerad
-puras-primmonerad:
-	$(MAKE) -C src/primmonerad clean
+.PHONY: puras-servilo
+puras-servilo:
+	$(MAKE) -C src/servilo clean
 
-.PHONY: puras-primmoneram
-puras-primmoneram:
-	cd src/primmoneram && qmake Testa-primmoneram.pro
-	$(MAKE) -C src/primmoneram clean && rm src/primmoneram/Makefile
-	cd src/primmoneram && qmake Primmoneram.pro
-	$(MAKE) -C src/primmoneram clean && rm src/primmoneram/Makefile
+.PHONY: puras-monujo
+puras-monujo:
+	cd src/monujo && qmake Primmonera-monujo.pro
+	$(MAKE) -C src/monujo clean && rm src/monujo/Makefile
+	cd src/monujo && qmake Testa-primmonera-monujo.pro
+	$(MAKE) -C src/monujo clean && rm src/monujo/Makefile
 
 # Testoj
 .PHONY: testoj
-testoj: testa-primmonerad testa-primmoneram
+testoj: testa-servilo testa-monujo
 
-.PHONY: testa-primmonerad
-testa-primmonerad:
-	# $(MAKE) -C src/primmonerad test
+.PHONY: testa-servilo
+testa-servilo:
+	# $(MAKE) -C src/servilo testo
 
-.PHONY: testa-primmoneram
-testa-primmoneram:
-	cd src/primmoneram && qmake Testa-primmoneram.pro
-	$(MAKE) -C src/primmoneram
-	./src/primmoneram/testa-primmoneram
+.PHONY: testa-monujo
+testa-monujo:
+	cd src/monujo && qmake Testa-primmonera-monujo.pro
+	$(MAKE) -C src/monujo
+	./src/monujo/testa-primmonera-monujo
 
 # Programoj
 .PHONY: programoj
-programoj: primmonerad primmoneram
+programoj: servilo monujo
 
-.PHONY: primmonerad
-primmonerad:
-	$(MAKE) -C src/primmonerad
+.PHONY: servilo
+servilo:
+	$(MAKE) -C src/servilo
 
-.PHONY: primmoneram
-primmoneram:
-	cd src/primmoneram && qmake Primmoneram.pro
-	$(MAKE) -C src/primmoneram
+.PHONY: monujo
+monujo:
+	cd src/monujo && qmake Primmonera-monujo.pro
+	$(MAKE) -C src/monujo

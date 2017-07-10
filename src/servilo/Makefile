@@ -144,10 +144,10 @@ OBJS= \
     obj/prime.o \
     obj/checkpointsync.o
 
-all: primmonerad
+all: primmonera-servilo
 
-test check: testa-primmonerad FORCE
-	./testa-primmonerad
+test check: testa-primmonera-servilo FORCE
+	./testa-primmonera-servilo
 
 #
 # LevelDB support
@@ -175,7 +175,7 @@ obj/%.o: %.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-primmonerad: $(OBJS:obj/%=obj/%)
+primmonera-servilo: $(OBJS:obj/%=obj/%)
 	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -187,11 +187,11 @@ obj-test/%.o: test/%.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-testa-primmonerad: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+testa-primmonera-servilo: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	$(LINK) $(xCXXFLAGS) -o $@ $(LIBPATHS) $^ $(TESTLIBS) $(xLDFLAGS) $(LIBS)
 
 clean:
-	-rm -f primmonerad testa-primmonerad
+	-rm -f primmonera-servilo testa-primmonera-servilo
 	-rm -f obj/*.o
 	-rm -f obj-test/*.o
 	-rm -f obj/*.P

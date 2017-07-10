@@ -1,11 +1,11 @@
-# primmonerad (a.k.k. demono)
-/src/primmonerad/primmonerad
-/src/primmonerad/testa-primmonerad
+# primmonera servilo
+/src/servilo/primmonera-servilo
+/src/servilo/testa-primmonera-servilo
 
-# primmoneram (a.k.k. monujo)
-/src/primmoneram/Makefile
-/src/primmoneram/build/
-/src/primmoneram/primmoneram
-/src/primmoneram/testa-primmoneram
-/src/primmoneram/qrc_bitcoin.cpp
+# primmonera monujo
+/src/monujo/Makefile
+/src/monujo/build/
+/src/monujo/primmonera-monujo
+/src/monujo/testa-primmonera-monujo
+/src/monujo/qrc_bitcoin.cpp
 
