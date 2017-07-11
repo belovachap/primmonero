@@ -10,16 +10,6 @@ DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 
-# avoid warnings about FD_SETSIZE being redefined
-# Windows x64 needs BOOST_USE_WINDOWS_H and WIN32_LEAN_AND_MEAN
-win32:DEFINES += FD_SETSIZE=1024 BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN WINVER=0x500
-
-# for boost 1.37, add -mt to the boost libraries
-# use: qmake BOOST_LIB_SUFFIX=-mt
-# for boost thread win32 with _win32 sufix
-# use: BOOST_THREAD_LIB_SUFFIX=_win32-...
-# or when linking against a specific BerkelyDB version: BDB_LIB_SUFFIX=-4.8
-
 # Dependency library locations can be customized with:
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
 #    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
@@ -46,21 +36,11 @@ contains(RELEASE, 1) {
     }
 }
 
-!win32 {
-    # for extra security against potential buffer overflows: enable GCCs Stack Smashing Protection
-    QMAKE_CXXFLAGS *= -fstack-protector-all
-    QMAKE_LFLAGS *= -fstack-protector-all
-    # Exclude on Windows cross compile with MinGW 4.2.x, as it will result in a non-working executable!
-    # This can be enabled for Windows, when we switch to MinGW >= 4.4.x.
-}
+# for extra security against potential buffer overflows: enable GCCs Stack Smashing Protection
+QMAKE_CXXFLAGS *= -fstack-protector-all
+QMAKE_LFLAGS *= -fstack-protector-all
 # for extra security (see: https://wiki.debian.org/Hardening): this flag is GCC compiler-specific
 QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2
-# for extra security on Windows: enable ASLR and DEP via GCC linker flags
-win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
-# on Windows x86: enable GCC large address aware linker flag
-!contains(QMAKE_HOST.arch, x86_64) {
-	win32:QMAKE_LFLAGS *= -Wl,--large-address-aware
-}
 
 # use: qmake "USE_DBUS=1"
 contains(USE_DBUS, 1) {
@@ -179,7 +159,6 @@ HEADERS += bitcoingui.h \
     paymentserver.h \
     ../servilo/allocators.h \
     ../servilo/ui_interface.h \
-    rpcconsole.h \
     ../servilo/version.h \
     ../servilo/netbase.h \
     ../servilo/clientversion.h \
@@ -248,7 +227,6 @@ SOURCES += bitcoin.cpp \
     ../servilo/protocol.cpp \
     notificator.cpp \
     paymentserver.cpp \
-    rpcconsole.cpp \
     ../servilo/noui.cpp \
     ../servilo/leveldb.cpp \
     ../servilo/txdb.cpp \
@@ -264,8 +242,7 @@ FORMS += forms/sendcoinsdialog.ui \
     forms/transactiondescdialog.ui \
     forms/overviewpage.ui \
     forms/sendcoinsentry.ui \
-    forms/askpassphrasedialog.ui \
-    forms/rpcconsole.ui
+    forms/askpassphrasedialog.ui
 
 # "Other files" to show in Qt Creator
 OTHER_FILES += README.md \

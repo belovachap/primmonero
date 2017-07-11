@@ -10,7 +10,6 @@ DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 
-
 # Dependency library locations can be customized with:
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
 #    BDB_LIB_PATH, OPENSSL_INCLUDE_PATH and OPENSSL_LIB_PATH respectively
@@ -37,21 +36,11 @@ contains(RELEASE, 1) {
     }
 }
 
-!win32 {
-    # for extra security against potential buffer overflows: enable GCCs Stack Smashing Protection
-    QMAKE_CXXFLAGS *= -fstack-protector-all
-    QMAKE_LFLAGS *= -fstack-protector-all
-    # Exclude on Windows cross compile with MinGW 4.2.x, as it will result in a non-working executable!
-    # This can be enabled for Windows, when we switch to MinGW >= 4.4.x.
-}
+# for extra security against potential buffer overflows: enable GCCs Stack Smashing Protection
+QMAKE_CXXFLAGS *= -fstack-protector-all
+QMAKE_LFLAGS *= -fstack-protector-all
 # for extra security (see: https://wiki.debian.org/Hardening): this flag is GCC compiler-specific
 QMAKE_CXXFLAGS *= -D_FORTIFY_SOURCE=2
-# for extra security on Windows: enable ASLR and DEP via GCC linker flags
-win32:QMAKE_LFLAGS *= -Wl,--dynamicbase -Wl,--nxcompat
-# on Windows x86: enable GCC large address aware linker flag
-!contains(QMAKE_HOST.arch, x86_64) {
-	win32:QMAKE_LFLAGS *= -Wl,--large-address-aware
-}
 
 # use: qmake "USE_DBUS=1"
 contains(USE_DBUS, 1) {
@@ -170,7 +159,6 @@ HEADERS += bitcoingui.h \
     paymentserver.h \
     ../servilo/allocators.h \
     ../servilo/ui_interface.h \
-    rpcconsole.h \
     ../servilo/version.h \
     ../servilo/netbase.h \
     ../servilo/clientversion.h \
@@ -238,7 +226,6 @@ SOURCES +=\
     ../servilo/protocol.cpp \
     notificator.cpp \
     paymentserver.cpp \
-    rpcconsole.cpp \
     ../servilo/noui.cpp \
     ../servilo/leveldb.cpp \
     ../servilo/txdb.cpp \
@@ -254,8 +241,7 @@ FORMS += forms/sendcoinsdialog.ui \
     forms/transactiondescdialog.ui \
     forms/overviewpage.ui \
     forms/sendcoinsentry.ui \
-    forms/askpassphrasedialog.ui \
-    forms/rpcconsole.ui
+    forms/askpassphrasedialog.ui
 
 # Testa programo transpasoj
 SOURCES += test/test_main.cpp \
@@ -313,16 +299,11 @@ DEFINES += _FILE_OFFSET_BITS=64
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
 LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -lleveldb -lmemenv
-# -lgdi32 has to happen after -lcrypto (see  #681)
-win32:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX -lboost_chrono$$BOOST_LIB_SUFFIX -lboost_timer$$BOOST_LIB_SUFFIX
 # Link dynamically against GMP
-!macx:LIBS += -Wl,-Bdynamic -lgmp
-else:LIBS += -lgmp
+LIBS += -Wl,-Bdynamic -lgmp
 
 contains(RELEASE, 1) {
-    !win32:!macx {
-        # Linux: turn dynamic linking back on for c/c++ runtime libraries
-        LIBS += -Wl,-Bdynamic
-    }
+    # Linux: turn dynamic linking back on for c/c++ runtime libraries
+    LIBS += -Wl,-Bdynamic
 }

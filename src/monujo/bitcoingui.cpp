@@ -36,7 +36,6 @@
 #include "guiutil.h"
 #include "init.h"
 #include "notificator.h"
-#include "rpcconsole.h"
 #include "transactiondescdialog.h"
 #include "transactiontablemodel.h"
 #include "ui_interface.h"
@@ -55,7 +54,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     aboutQtAction(0),
     trayIcon(0),
     notificator(0),
-    rpcConsole(0),
     prevBlocks(0)
 {
     restoreWindowGeometry();
@@ -126,9 +124,6 @@ BitcoinGUI::BitcoinGUI(QWidget *parent) :
     statusBar()->addPermanentWidget(frameBlocks);
 
     syncIconMovie = new QMovie(":/movies/update_spinner", "mng", this);
-
-    rpcConsole = new RPCConsole(this);
-    connect(openRPCConsoleAction, SIGNAL(triggered()), rpcConsole, SLOT(show()));
 
     // Install event filter to be able to catch status tip events (QEvent::StatusTip)
     this->installEventFilter(this);
@@ -215,9 +210,6 @@ void BitcoinGUI::createActions()
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setStatusTip(tr("Change the passphrase used for wallet encryption"));
 
-    openRPCConsoleAction = new QAction(QIcon(":/icons/debugwindow"), tr("&Debug window"), this);
-    openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
-
     connect(forlasuFaro, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
     connect(aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
@@ -239,8 +231,6 @@ void BitcoinGUI::createMenuBar()
     faroj->addAction(forlasuFaro);
 
     QMenu *pri = appMenuBar->addMenu("Pri");
-    pri->addAction(openRPCConsoleAction);
-    pri->addSeparator();
     pri->addAction(aboutAction);
     pri->addAction(aboutQtAction);
 }
@@ -293,7 +283,6 @@ void BitcoinGUI::setClientModel(ClientModel *clientModel)
         // Receive and report messages from network/worker thread
         connect(clientModel, SIGNAL(message(QString,QString,unsigned int)), this, SLOT(message(QString,QString,unsigned int)));
 
-        rpcConsole->setClientModel(clientModel);
         walletFrame->setClientModel(clientModel);
     }
 }
@@ -342,8 +331,6 @@ void BitcoinGUI::createTrayIconMenu()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(sendCoinsAction);
     trayIconMenu->addAction(receiveCoinsAction);
-    trayIconMenu->addSeparator();
-    trayIconMenu->addAction(openRPCConsoleAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(forlasuFaro);
 }
