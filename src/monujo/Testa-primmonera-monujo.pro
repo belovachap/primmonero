@@ -10,15 +10,6 @@ DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
 CONFIG += thread
 
-# avoid warnings about FD_SETSIZE being redefined
-# Windows x64 needs BOOST_USE_WINDOWS_H and WIN32_LEAN_AND_MEAN
-win32:DEFINES += FD_SETSIZE=1024 BOOST_USE_WINDOWS_H WIN32_LEAN_AND_MEAN WINVER=0x500
-
-# for boost 1.37, add -mt to the boost libraries
-# use: qmake BOOST_LIB_SUFFIX=-mt
-# for boost thread win32 with _win32 sufix
-# use: BOOST_THREAD_LIB_SUFFIX=_win32-...
-# or when linking against a specific BerkelyDB version: BDB_LIB_SUFFIX=-4.8
 
 # Dependency library locations can be customized with:
 #    BOOST_INCLUDE_PATH, BOOST_LIB_PATH, BDB_INCLUDE_PATH,
@@ -91,26 +82,6 @@ contains(BITCOIN_NEED_QT_PLUGINS, 1) {
     QTPLUGIN += qtaccessiblewidgets
 }
 
-INCLUDEPATH += ../servilo/leveldb/include ../servilo/leveldb/helpers
-LIBS += $$PWD/../servilo/leveldb/libleveldb.a $$PWD/../servilo/leveldb/libmemenv.a
-!win32 {
-    # we use QMAKE_CXXFLAGS_RELEASE even without RELEASE=1 because we use RELEASE to indicate linking preferences not -O preferences
-    genleveldb.commands = cd $$PWD/../servilo/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a
-} else {
-    # make an educated guess about what the ranlib command is called
-    isEmpty(QMAKE_RANLIB) {
-        QMAKE_RANLIB = $$replace(QMAKE_STRIP, strip, ranlib)
-    }
-    LIBS += -lshlwapi
-    genleveldb.commands = cd $$PWD/../servilo/leveldb && CC=$$QMAKE_CC CXX=$$QMAKE_CXX TARGET_OS=OS_WINDOWS_CROSSCOMPILE $(MAKE) OPT=\"$$QMAKE_CXXFLAGS $$QMAKE_CXXFLAGS_RELEASE\" libleveldb.a libmemenv.a && $$QMAKE_RANLIB $$PWD/../servilo/leveldb/libleveldb.a && $$QMAKE_RANLIB $$PWD/../servilo/leveldb/libmemenv.a
-}
-genleveldb.target = $$PWD/../servilo/leveldb/libleveldb.a
-genleveldb.depends = FORCE
-PRE_TARGETDEPS += $$PWD/../servilo/leveldb/libleveldb.a
-QMAKE_EXTRA_TARGETS += genleveldb
-# Gross ugly hack that depends on qmake internals, unfortunately there is no other way to do it.
-QMAKE_CLEAN += $$PWD/../servilo/leveldb/libleveldb.a; cd $$PWD/../servilo/leveldb ; $(MAKE) clean
-
 # Regenerate build/build.h
 genbuild.depends = FORCE
 genbuild.commands = cd $$PWD; /bin/sh ../../share/genbuild.sh $$OUT_PWD/build/build.h
@@ -119,7 +90,15 @@ PRE_TARGETDEPS += $$OUT_PWD/build/build.h
 QMAKE_EXTRA_TARGETS += genbuild
 DEFINES += HAVE_BUILD_INFO
 
-QMAKE_CXXFLAGS_WARN_ON = -fdiagnostics-show-option -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter -Wstack-protector
+QMAKE_CXXFLAGS_WARN_ON=\
+    -fdiagnostics-show-option \
+    -Wall \
+    -Wextra \
+    -Werror \
+    -Wformat \
+    -Wformat-security \
+    -Wno-unused-parameter \
+    -Wstack-protector
 
 # Input
 DEPENDPATH +=  ./ ../servilo ../servilo/json
@@ -202,7 +181,7 @@ HEADERS += bitcoingui.h \
     ../servilo/prime.h \
     ../servilo/checkpointsync.h
 
-SOURCES += bitcoin.cpp \
+SOURCES +=\
     bitcoingui.cpp \
     transactiontablemodel.cpp \
     addresstablemodel.cpp \
@@ -230,7 +209,6 @@ SOURCES += bitcoin.cpp \
     clientmodel.cpp \
     guiutil.cpp \
     transactionrecord.cpp \
-    monitoreddatamapper.cpp \
     transactiondesc.cpp \
     transactiondescdialog.cpp \
     bitcoinamountfield.cpp \
@@ -285,7 +263,6 @@ SOURCES += test/test_main.cpp \
 HEADERS += test/uritests.h
 DEPENDPATH += test
 QT += testlib
-DEFINES += TESTA_PROGRAMO
 
 # "Other files" to show in Qt Creator
 OTHER_FILES += README.md \
@@ -335,7 +312,7 @@ DEFINES += _FILE_OFFSET_BITS=64
 # Set libraries and includes at end, to use platform-defined defaults if not overridden
 INCLUDEPATH += $$BOOST_INCLUDE_PATH $$BDB_INCLUDE_PATH $$OPENSSL_INCLUDE_PATH $$QRENCODE_INCLUDE_PATH
 LIBS += $$join(BOOST_LIB_PATH,,-L,) $$join(BDB_LIB_PATH,,-L,) $$join(OPENSSL_LIB_PATH,,-L,) $$join(QRENCODE_LIB_PATH,,-L,)
-LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX
+LIBS += -lssl -lcrypto -ldb_cxx$$BDB_LIB_SUFFIX -lleveldb -lmemenv
 # -lgdi32 has to happen after -lcrypto (see  #681)
 win32:LIBS += -lws2_32 -lshlwapi -lmswsock -lole32 -loleaut32 -luuid -lgdi32
 LIBS += -lboost_system$$BOOST_LIB_SUFFIX -lboost_filesystem$$BOOST_LIB_SUFFIX -lboost_program_options$$BOOST_LIB_SUFFIX -lboost_thread$$BOOST_THREAD_LIB_SUFFIX -lboost_chrono$$BOOST_LIB_SUFFIX -lboost_timer$$BOOST_LIB_SUFFIX

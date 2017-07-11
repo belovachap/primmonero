@@ -41,6 +41,8 @@ LIBS += \
    -l crypto \
  -Wl,-Bdynamic \
    -l gmp \
+   -l leveldb \
+   -l memenv \
  -Wl,-B$(LMODE)
 
 TESTLIBS += \
@@ -102,15 +104,25 @@ DEBUGFLAGS=-g
 
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
-xCXXFLAGS=-O2 -pthread -Wall -Wextra -Wformat -Wformat-security -Wno-unused-parameter \
-    $(DEBUGFLAGS) $(DEFS) $(HARDENING) $(CXXFLAGS)
+xCXXFLAGS=\
+    $(DEBUGFLAGS) \
+    $(DEFS) \
+    $(HARDENING) \
+    $(CXXFLAGS) \
+    -O2 \
+    -Wall \
+    -Wextra \
+    -Werror \
+    -Wformat \
+    -Wformat-security \
+    -Wno-unused-parameter \
+    -pthread
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.
 xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
 
-OBJS= \
-    leveldb/libleveldb.a \
+OBJS=\
     obj/alert.o \
     obj/version.o \
     obj/checkpoints.o \
@@ -148,16 +160,6 @@ all: primmonera-servilo
 
 test check: testa-primmonera-servilo FORCE
 	./testa-primmonera-servilo
-
-#
-# LevelDB support
-#
-MAKEOVERRIDES =
-LIBS += $(CURDIR)/leveldb/libleveldb.a $(CURDIR)/leveldb/libmemenv.a
-DEFS += $(addprefix -I,$(CURDIR)/leveldb/include)
-DEFS += $(addprefix -I,$(CURDIR)/leveldb/helpers)
-leveldb/libleveldb.a:
-	@echo "Building LevelDB ..." && cd leveldb && $(MAKE) CC=$(CC) CXX=$(CXX) OPT="$(xCXXFLAGS)" libleveldb.a libmemenv.a && cd ..
 
 # auto-generated dependencies:
 -include obj/*.P
@@ -197,6 +199,5 @@ clean:
 	-rm -f obj/*.P
 	-rm -f obj-test/*.P
 	-rm -f obj/build.h
-	-cd leveldb && $(MAKE) clean || true
 
 FORCE:
