@@ -4,7 +4,7 @@
 TEMPLATE = app
 TARGET = testa-primmonera-monujo
 VERSION = 0.0.0
-INCLUDEPATH += ./ ../servilo
+INCLUDEPATH += ./
 QT += network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
@@ -90,138 +90,139 @@ QMAKE_CXXFLAGS_WARN_ON=\
     -Wstack-protector
 
 # Input
-DEPENDPATH +=  ./ ../servilo
-HEADERS += bitcoingui.h \
-    transactiontablemodel.h \
-    addresstablemodel.h \
-    sendcoinsdialog.h \
+DEPENDPATH +=  ./ ../
+HEADERS += \
     addressbookpage.h \
     aboutdialog.h \
-    editaddressdialog.h \
+    addresstablemodel.h \
+    addrman.h \
+    alert.h \
+    allocators.h \
+    askpassphrasedialog.h \
+    base58.h \
+    bignum.h \
     bitcoinaddressvalidator.h \
-    ../servilo/alert.h \
-    ../servilo/addrman.h \
-    ../servilo/base58.h \
-    ../servilo/bignum.h \
-    ../servilo/checkpoints.h \
-    ../servilo/compat.h \
-    ../servilo/sync.h \
-    ../servilo/util.h \
-    ../servilo/hash.h \
-    ../servilo/uint256.h \
-    ../servilo/serialize.h \
-    ../servilo/main.h \
-    ../servilo/net.h \
-    ../servilo/key.h \
-    ../servilo/db.h \
-    ../servilo/walletdb.h \
-    ../servilo/script.h \
-    ../servilo/init.h \
-    ../servilo/bloom.h \
-    ../servilo/mruset.h \
-    ../servilo/checkqueue.h \
+    bitcoinamountfield.h \
+    bitcoingui.h \
+    bitcoinrpc.h \
+    bitcoinunits.h \
+    bloom.h \
+    checkpoints.h \
+    checkpointsync.h \
+    checkqueue.h \
     clientmodel.h \
-    guiutil.h \
-    transactionrecord.h \
+    clientversion.h \
+    compat.h \
+    crypter.h \
+    csvmodelwriter.h \
+    db.h \
+    editaddressdialog.h \
     guiconstants.h \
+    guiutil.h \
+    hash.h \
+    init.h \
+    key.h \
+    keystore.h \
+    leveldb.h \
+    limitedmap.h \
+    main.h \
     monitoreddatamapper.h \
+    mruset.h \
+    net.h \
+    netbase.h \
+    notificator.h \
+    overviewpage.h \
+    paymentserver.h \
+    prime.h \
+    protocol.h \
+    qvalidatedlineedit.h \
+    qvaluecombobox.h \
+    script.h \
+    sendcoinsdialog.h \
+    sendcoinsentry.h \
+    serialize.h \
+    sync.h \
+    threadsafety.h \
     transactiondesc.h \
     transactiondescdialog.h \
-    bitcoinamountfield.h \
-    ../servilo/wallet.h \
-    ../servilo/keystore.h \
     transactionfilterproxy.h \
+    transactionrecord.h \
+    transactiontablemodel.h \
     transactionview.h \
-    walletmodel.h \
-    walletview.h \
-    walletstack.h \
+    txdb.h \
+    ui_interface.h \
+    uint256.h \
+    util.h \
+    version.h \
+    wallet.h \
+    walletdb.h \
     walletframe.h \
-    ../servilo/bitcoinrpc.h \
-    overviewpage.h \
-    csvmodelwriter.h \
-    ../servilo/crypter.h \
-    sendcoinsentry.h \
-    qvalidatedlineedit.h \
-    bitcoinunits.h \
-    qvaluecombobox.h \
-    askpassphrasedialog.h \
-    ../servilo/protocol.h \
-    notificator.h \
-    paymentserver.h \
-    ../servilo/allocators.h \
-    ../servilo/ui_interface.h \
-    ../servilo/version.h \
-    ../servilo/netbase.h \
-    ../servilo/clientversion.h \
-    ../servilo/txdb.h \
-    ../servilo/leveldb.h \
-    ../servilo/threadsafety.h \
-    ../servilo/limitedmap.h \
-    ../servilo/prime.h \
-    ../servilo/checkpointsync.h
+    walletmodel.h \
+    walletstack.h \
+    walletview.h
 
-SOURCES +=\
-    bitcoingui.cpp \
-    transactiontablemodel.cpp \
-    addresstablemodel.cpp \
-    sendcoinsdialog.cpp \
-    addressbookpage.cpp \
+SOURCES += \
     aboutdialog.cpp \
-    editaddressdialog.cpp \
+    addressbookpage.cpp \
+    addresstablemodel.cpp \
+    addrman.cpp \
+    alert.cpp \
+    askpassphrasedialog.cpp \
     bitcoinaddressvalidator.cpp \
-    ../servilo/alert.cpp \
-    ../servilo/version.cpp \
-    ../servilo/sync.cpp \
-    ../servilo/util.cpp \
-    ../servilo/hash.cpp \
-    ../servilo/netbase.cpp \
-    ../servilo/key.cpp \
-    ../servilo/script.cpp \
-    ../servilo/main.cpp \
-    ../servilo/init.cpp \
-    ../servilo/net.cpp \
-    ../servilo/bloom.cpp \
-    ../servilo/checkpoints.cpp \
-    ../servilo/addrman.cpp \
-    ../servilo/db.cpp \
-    ../servilo/walletdb.cpp \
+    bitcoinamountfield.cpp \
+    bitcoingui.cpp \
+    bitcoinrpc.cpp \
+    bitcoinunits.cpp \
+    bloom.cpp \
+    checkpoints.cpp \
+    checkpointsync.cpp \
     clientmodel.cpp \
+    crypter.cpp \
+    csvmodelwriter.cpp \
+    db.cpp \
+    editaddressdialog.cpp \
     guiutil.cpp \
-    transactionrecord.cpp \
+    hash.cpp \
+    init.cpp \
+    key.cpp \
+    keystore.cpp \
+    leveldb.cpp \
+    monitoreddatamapper.cpp \
+    net.cpp \
+    netbase.cpp \
+    notificator.cpp \
+    main.cpp \
+    overviewpage.cpp \
+    paymentserver.cpp \
+    prime.cpp \
+    protocol.cpp \
+    qvalidatedlineedit.cpp \
+    qvaluecombobox.cpp \
+    rpcblockchain.cpp \
+    rpcdump.cpp \
+    rpcmining.cpp \
+    rpcnet.cpp \
+    rpcrawtransaction.cpp \
+    rpcwallet.cpp \
+    script.cpp \
+    sendcoinsdialog.cpp \
+    sendcoinsentry.cpp \
+    sync.cpp \
     transactiondesc.cpp \
     transactiondescdialog.cpp \
-    bitcoinamountfield.cpp \
-    ../servilo/wallet.cpp \
-    ../servilo/keystore.cpp \
     transactionfilterproxy.cpp \
+    transactiontablemodel.cpp \
+    transactionrecord.cpp \
     transactionview.cpp \
-    walletmodel.cpp \
-    walletview.cpp \
-    walletstack.cpp \
+    txdb.cpp \
+    util.cpp \
+    version.cpp \
+    wallet.cpp \
+    walletdb.cpp \
     walletframe.cpp \
-    ../servilo/bitcoinrpc.cpp \
-    ../servilo/rpcdump.cpp \
-    ../servilo/rpcnet.cpp \
-    ../servilo/rpcmining.cpp \
-    ../servilo/rpcwallet.cpp \
-    ../servilo/rpcblockchain.cpp \
-    ../servilo/rpcrawtransaction.cpp \
-    overviewpage.cpp \
-    csvmodelwriter.cpp \
-    ../servilo/crypter.cpp \
-    sendcoinsentry.cpp \
-    qvalidatedlineedit.cpp \
-    bitcoinunits.cpp \
-    qvaluecombobox.cpp \
-    askpassphrasedialog.cpp \
-    ../servilo/protocol.cpp \
-    notificator.cpp \
-    paymentserver.cpp \
-    ../servilo/noui.cpp \
-    ../servilo/leveldb.cpp \
-    ../servilo/txdb.cpp \
-    ../servilo/prime.cpp \
-    ../servilo/checkpointsync.cpp
+    walletmodel.cpp \
+    walletstack.cpp \
+    walletview.cpp
 
 RESOURCES += bitcoin.qrc
 
@@ -238,7 +239,6 @@ FORMS += forms/sendcoinsdialog.ui \
 SOURCES += test/test_main.cpp \
            test/uritests.cpp
 HEADERS += test/uritests.h
-DEPENDPATH += test
 QT += testlib
 
 # "Other files" to show in Qt Creator
@@ -246,8 +246,6 @@ OTHER_FILES += README.md \
     doc/*.rst \
     doc/*.txt \
     res/bitcoin-qt.rc \
-    ../servilo/test/*.cpp \
-    ../servilo/test/*.h \
     test/*.cpp \
     test/*.h
 
