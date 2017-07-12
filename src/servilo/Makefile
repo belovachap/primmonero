@@ -27,28 +27,22 @@ else
 	TESTDEFS += -DBOOST_TEST_DYN_LINK
 endif
 
-# for boost 1.37, add -mt to the boost libraries
 LIBS += \
- -Wl,-B$(LMODE) \
-   -l boost_system$(BOOST_LIB_SUFFIX) \
-   -l boost_filesystem$(BOOST_LIB_SUFFIX) \
-   -l boost_program_options$(BOOST_LIB_SUFFIX) \
-   -l boost_thread$(BOOST_LIB_SUFFIX) \
-   -l boost_chrono$(BOOST_LIB_SUFFIX) \
-   -l boost_timer$(BOOST_LIB_SUFFIX) \
-   -l db_cxx$(BDB_LIB_SUFFIX) \
+   -l boost_system \
+   -l boost_filesystem \
+   -l boost_program_options \
+   -l boost_thread \
+   -l boost_chrono \
+   -l boost_timer \
+   -l db_cxx \
    -l ssl \
    -l crypto \
- -Wl,-Bdynamic \
+   -l json_spirit \
    -l gmp \
    -l leveldb \
    -l memenv \
- -Wl,-B$(LMODE)
 
-TESTLIBS += \
- -Wl,-B$(LMODE) \
-   -l boost_unit_test_framework$(BOOST_LIB_SUFFIX)
-
+TESTLIBS += -l boost_unit_test_framework
 ifneq (${USE_IPV6}, -)
 	DEFS += -DUSE_IPV6=$(USE_IPV6)
 endif
@@ -58,13 +52,10 @@ ifeq ($(RELEASE), 1)
 	LIBS += -Wl,-rpath,\$$ORIGIN
 endif
 
-
-LIBS+= \
- -Wl,-B$(LMODE2) \
+LIBS += \
    -l z \
    -l dl \
    -l pthread
-
 
 # Hardening
 # Make some classes of vulnerabilities unexploitable in case one is discovered.
@@ -98,7 +89,6 @@ LIBS+= \
     # the source such overflowing a statically defined buffer.
     HARDENING+=-D_FORTIFY_SOURCE=2
 #
-
 
 DEBUGFLAGS=-g
 
@@ -158,8 +148,8 @@ OBJS=\
 
 all: primmonera-servilo
 
-test check: testa-primmonera-servilo FORCE
-	./testa-primmonera-servilo
+testo: testa-primmonera-servilo FORCE
+	#./testa-primmonera-servilo
 
 # auto-generated dependencies:
 -include obj/*.P

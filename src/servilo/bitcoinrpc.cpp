@@ -24,6 +24,7 @@
 #include <boost/asio/ssl.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/shared_ptr.hpp>
+#include <json_spirit_value.h>
 #include <list>
 
 using namespace std;
@@ -68,8 +69,7 @@ void RPCTypeCheck(const Array& params,
         const Value& v = params[i];
         if (!((v.type() == t) || (fAllowNull && (v.type() == null_type))))
         {
-            string err = strprintf("Expected type %s, got %s",
-                                   Value_type_name[t], Value_type_name[v.type()]);
+            string err = strprintf("Expected type %d, got %d", t, v.type());
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
         i++;
@@ -88,8 +88,8 @@ void RPCTypeCheck(const Object& o,
 
         if (!((v.type() == t.second) || (fAllowNull && (v.type() == null_type))))
         {
-            string err = strprintf("Expected type %s for %s, got %s",
-                                   Value_type_name[t.second], t.first.c_str(), Value_type_name[v.type()]);
+            string err = strprintf("Expected type %d for %s, got %d",
+                                   t.second, t.first.c_str(), v.type());
             throw JSONRPCError(RPC_TYPE_ERROR, err);
         }
     }

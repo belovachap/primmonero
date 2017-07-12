@@ -34,7 +34,7 @@ testoj: testa-servilo testa-monujo
 
 .PHONY: testa-servilo
 testa-servilo:
-	# $(MAKE) -C src/servilo testo
+	$(MAKE) -C src/servilo testo
 
 .PHONY: testa-monujo
 testa-monujo:

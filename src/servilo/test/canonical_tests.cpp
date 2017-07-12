@@ -1,8 +1,8 @@
 //
 // Unit tests for canonical signatures
 
-#include "json/json_spirit_writer_template.h"
 #include <boost/test/unit_test.hpp>
+#include <json_spirit_writer_template.h>
 #include <openssl/ecdsa.h>
 
 #include "key.h"

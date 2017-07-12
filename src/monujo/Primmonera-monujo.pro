@@ -4,7 +4,7 @@
 TEMPLATE = app
 TARGET = primmonera-monujo
 VERSION = 0.0.0
-INCLUDEPATH += ./ ../servilo ../servilo/json
+INCLUDEPATH += ./ ../servilo
 QT += network
 DEFINES += QT_GUI BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd
@@ -90,7 +90,7 @@ QMAKE_CXXFLAGS_WARN_ON=\
     -Wstack-protector
 
 # Input
-DEPENDPATH +=  ./ ../servilo ../servilo/json
+DEPENDPATH +=  ./ ../servilo
 HEADERS += bitcoingui.h \
     transactiontablemodel.h \
     addresstablemodel.h \
@@ -120,15 +120,6 @@ HEADERS += bitcoingui.h \
     ../servilo/bloom.h \
     ../servilo/mruset.h \
     ../servilo/checkqueue.h \
-    ../servilo/json/json_spirit_writer_template.h \
-    ../servilo/json/json_spirit_writer.h \
-    ../servilo/json/json_spirit_value.h \
-    ../servilo/json/json_spirit_utils.h \
-    ../servilo/json/json_spirit_stream_reader.h \
-    ../servilo/json/json_spirit_reader_template.h \
-    ../servilo/json/json_spirit_reader.h \
-    ../servilo/json/json_spirit_error_position.h \
-    ../servilo/json/json_spirit.h \
     clientmodel.h \
     guiutil.h \
     transactionrecord.h \
