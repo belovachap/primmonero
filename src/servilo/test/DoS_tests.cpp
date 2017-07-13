@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 //
 // Unit tests for denial-of-service detection/prevention code
 //
@@ -9,7 +12,6 @@
 #include <boost/foreach.hpp>
 
 #include "main.h"
-#include "wallet.h"
 #include "net.h"
 #include "util.h"
 

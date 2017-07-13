@@ -133,13 +133,6 @@ inline void MilliSleep(int64 n)
 #define ATTR_WARN_PRINTF(X,Y)
 #endif
 
-
-
-
-
-
-
-
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
 extern bool fDebug;
@@ -147,8 +140,6 @@ extern bool fDebugNet;
 extern bool fPrintToConsole;
 extern bool fPrintToDebugger;
 extern bool fDaemon;
-extern bool fServer;
-extern bool fCommandLine;
 extern std::string strMiscWarning;
 extern bool fTestNet;
 extern bool fNoListen;

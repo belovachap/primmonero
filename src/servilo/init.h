@@ -1,18 +1,17 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_INIT_H
-#define BITCOIN_INIT_H
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
-#include "wallet.h"
+#ifndef __INIT_H__
+#define __INIT_H__
 
-extern CWallet* pwalletMain;
+#include <boost/thread/thread.hpp>
 
-void StartShutdown();
-bool ShutdownRequested();
-void Shutdown();
-bool AppInit2(boost::thread_group& threadGroup);
+bool AppInit2(boost::thread_group &);
 std::string HelpMessage();
+void Shutdown();
+bool ShutdownRequested();
+void StartShutdown();
 
-#endif
+#endif // __INIT_H__

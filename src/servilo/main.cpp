@@ -26,13 +26,9 @@ using namespace boost;
 // Global state
 //
 
-CCriticalSection cs_setpwalletRegistered;
-set<CWallet*> setpwalletRegistered;
-
 CCriticalSection cs_main;
 
 CTxMemPool mempool;
-unsigned int nTransactionsUpdated = 0;
 
 map<uint256, CBlockIndex*> mapBlockIndex;
 uint256 hashGenesisBlock = hashGenesisBlockOfficial;
@@ -77,101 +73,10 @@ int64 nHPSTimerStart = 0;
 // Settings
 int64 nTransactionFee = 0;
 
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// dispatching functions
-//
-
-// These functions dispatch to one or all registered wallets
-
-
-void RegisterWallet(CWallet* pwalletIn)
-{
-    {
-        LOCK(cs_setpwalletRegistered);
-        setpwalletRegistered.insert(pwalletIn);
-    }
-}
-
-void UnregisterWallet(CWallet* pwalletIn)
-{
-    {
-        LOCK(cs_setpwalletRegistered);
-        setpwalletRegistered.erase(pwalletIn);
-    }
-}
-
-// get the wallet transaction with the given hash (if it exists)
-bool static GetTransaction(const uint256& hashTx, CWalletTx& wtx)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        if (pwallet->GetTransaction(hashTx,wtx))
-            return true;
-    return false;
-}
-
-// erases transaction with the given hash from all wallets
-void static EraseFromWallets(uint256 hash)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->EraseFromWallet(hash);
-}
-
-// make sure all wallets know about the given transaction, in the given block
-void SyncWithWallets(const uint256 &hash, const CTransaction& tx, const CBlock* pblock, bool fUpdate)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->AddToWalletIfInvolvingMe(hash, tx, pblock, fUpdate);
-}
-
-// notify wallets about a new best chain
-void static SetBestChain(const CBlockLocator& loc)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->SetBestChain(loc);
-}
-
-// notify wallets about an updated transaction
-void static UpdatedTransaction(const uint256& hashTx)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->UpdatedTransaction(hashTx);
-}
-
-// dump all wallets
-void static PrintWallets(const CBlock& block)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->PrintWallet(block);
-}
-
-// notify wallets about an incoming inventory (for request counts)
-void static Inventory(const uint256& hash)
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->Inventory(hash);
-}
-
-// ask wallets to resend their transactions
-void static ResendWalletTransactions()
-{
-    BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->ResendWalletTransactions();
-}
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////
 //
 // CCoinsView implementations
 //
-
 bool CCoinsView::GetCoins(const uint256 &txid, CCoins &coins) { return false; }
 bool CCoinsView::SetCoins(const uint256 &txid, const CCoins &coins) { return false; }
 bool CCoinsView::HaveCoins(const uint256 &txid) { return false; }
@@ -814,12 +719,6 @@ bool CTxMemPool::accept(CValidationState &state, CTransaction &tx, bool fCheckIn
         addUnchecked(hash, tx);
     }
 
-    ///// are we sure this is ok when loading transactions or restoring block txes
-    // If updated, erase old tx from wallet
-    if (ptxOld)
-        EraseFromWallets(ptxOld->GetHash());
-    SyncWithWallets(hash, tx, NULL, true);
-
     return true;
 }
 
@@ -840,7 +739,6 @@ bool CTxMemPool::addUnchecked(const uint256& hash, const CTransaction &tx)
         mapTx[hash] = tx;
         for (unsigned int i = 0; i < tx.vin.size(); i++)
             mapNextTx[tx.vin[i].prevout] = CInPoint(&mapTx[hash], i);
-        nTransactionsUpdated++;
     }
     return true;
 }
@@ -864,7 +762,6 @@ bool CTxMemPool::remove(const CTransaction &tx, bool fRecursive)
             BOOST_FOREACH(const CTxIn& txin, tx.vin)
                 mapNextTx.erase(txin.prevout);
             mapTx.erase(hash);
-            nTransactionsUpdated++;
         }
     }
     return true;
@@ -890,7 +787,6 @@ void CTxMemPool::clear()
     LOCK(cs);
     mapTx.clear();
     mapNextTx.clear();
-    ++nTransactionsUpdated;
 }
 
 void CTxMemPool::queryHashes(std::vector<uint256>& vtxid)
@@ -945,28 +841,6 @@ bool CMerkleTx::AcceptToMemoryPool(bool fCheckInputs, bool fLimitFree)
     CValidationState state;
     return CTransaction::AcceptToMemoryPool(state, fCheckInputs, fLimitFree);
 }
-
-
-
-bool CWalletTx::AcceptWalletTransaction(bool fCheckInputs)
-{
-    {
-        LOCK(mempool.cs);
-        // Add previous supporting transactions first
-        BOOST_FOREACH(CMerkleTx& tx, vtxPrev)
-        {
-            if (!tx.IsCoinBase())
-            {
-                uint256 hash = tx.GetHash();
-                if (!mempool.exists(hash) && pcoinsTip->HaveCoins(hash))
-                    tx.AcceptToMemoryPool(fCheckInputs, false);
-            }
-        }
-        return AcceptToMemoryPool(fCheckInputs, false);
-    }
-    return false;
-}
-
 
 // Return transaction in tx, and if it was found inside a block, its hash is placed in hashBlock
 bool GetTransaction(const uint256 &hash, CTransaction &txOut, uint256 &hashBlock, bool fAllowSlow)
@@ -1701,10 +1575,6 @@ bool CBlock::ConnectBlock(CValidationState &state, CBlockIndex* pindex, CCoinsVi
     // add this block to the view's block chain
     assert(view.SetBestBlock(pindex));
 
-    // Watch for transactions paying to me
-    for (unsigned int i=0; i<vtx.size(); i++)
-        SyncWithWallets(GetTxHash(i), vtx[i], this, true);
-
     return true;
 }
 
@@ -1838,13 +1708,6 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
         mempool.removeConflicts(tx);
     }
 
-    // Update best block in wallet (so we can detect restored wallets)
-    if ((pindexNew->nHeight % 20160) == 0 || (!fIsInitialDownload && (pindexNew->nHeight % 144) == 0))
-    {
-        const CBlockLocator locator(pindexNew);
-        ::SetBestChain(locator);
-    }
-
     // New best block
     hashBestChain = pindexNew->GetBlockHash();
     pindexBest = pindexNew;
@@ -1852,7 +1715,6 @@ bool SetBestChain(CValidationState &state, CBlockIndex* pindexNew)
     nBestHeight = pindexBest->nHeight;
     nBestChainWork = pindexNew->nChainWork;
     nTimeBestReceived = GetTime();
-    nTransactionsUpdated++;
     uint256 nBlockWork = pindexNew->nChainWork - (pindexNew->pprev? pindexNew->pprev->nChainWork : 0);
     printf("SetBestChain: new best=%s  height=%d  difficulty=%.8g log2Work=%.8g  log2ChainWork=%.8g  tx=%lu  date=%s progress=%f\n",
       hashBestChain.ToString().c_str(), nBestHeight, GetPrimeDifficulty(pindexNew->nBits), log(nBlockWork.getdouble())/log(2.0), log(nBestChainWork.getdouble())/log(2.0), (unsigned long)pindexNew->nChainTx,
@@ -1933,14 +1795,6 @@ bool CBlock::AddToBlockIndex(CValidationState &state, const CDiskBlockPos &pos)
     // New best?
     if (!ConnectBestBlock(state))
         return false;
-
-    if (pindexNew == pindexBest)
-    {
-        // Notify UI to display prev block's coinbase if it was ours
-        static uint256 hashPrevBestCoinBase;
-        UpdatedTransaction(hashPrevBestCoinBase);
-        hashPrevBestCoinBase = GetTxHash(0);
-    }
 
     if (!pblocktree->Flush())
         return state.Abort(_("Failed to sync block index"));
@@ -2849,78 +2703,6 @@ bool InitBlockIndex() {
     return true;
 }
 
-
-
-void PrintBlockTree()
-{
-    // pre-compute tree structure
-    map<CBlockIndex*, vector<CBlockIndex*> > mapNext;
-    for (map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
-    {
-        CBlockIndex* pindex = (*mi).second;
-        mapNext[pindex->pprev].push_back(pindex);
-        // test
-        //while (rand() % 3 == 0)
-        //    mapNext[pindex->pprev].push_back(pindex);
-    }
-
-    vector<pair<int, CBlockIndex*> > vStack;
-    vStack.push_back(make_pair(0, pindexGenesisBlock));
-
-    int nPrevCol = 0;
-    while (!vStack.empty())
-    {
-        int nCol = vStack.back().first;
-        CBlockIndex* pindex = vStack.back().second;
-        vStack.pop_back();
-
-        // print split or gap
-        if (nCol > nPrevCol)
-        {
-            for (int i = 0; i < nCol-1; i++)
-                printf("| ");
-            printf("|\\\n");
-        }
-        else if (nCol < nPrevCol)
-        {
-            for (int i = 0; i < nCol; i++)
-                printf("| ");
-            printf("|\n");
-       }
-        nPrevCol = nCol;
-
-        // print columns
-        for (int i = 0; i < nCol; i++)
-            printf("| ");
-
-        // print item
-        CBlock block;
-        block.ReadFromDisk(pindex);
-        printf("%d (blk%05u.dat:0x%x)  %s  %s  tx %"PRIszu"",
-            pindex->nHeight,
-            pindex->GetBlockPos().nFile, pindex->GetBlockPos().nPos,
-            DateTimeStrFormat("%Y-%m-%d %H:%M:%S", block.GetBlockTime()).c_str(),
-            TargetToString(block.nBits).c_str(), block.vtx.size());
-
-        PrintWallets(block);
-
-        // put the main time-chain first
-        vector<CBlockIndex*>& vNext = mapNext[pindex];
-        for (unsigned int i = 0; i < vNext.size(); i++)
-        {
-            if (vNext[i]->pnext)
-            {
-                swap(vNext[0], vNext[i]);
-                break;
-            }
-        }
-
-        // iterate children
-        for (unsigned int i = 0; i < vNext.size(); i++)
-            vStack.push_back(make_pair(nCol+i, vNext[i]));
-    }
-}
-
 bool LoadExternalBlockFile(FILE* fileIn, CDiskBlockPos *dbp)
 {
     int64 nStart = GetTimeMillis();
@@ -3202,9 +2984,6 @@ void static ProcessGetData(CNode* pfrom)
                 }
             }
 
-            // Track requests for our stuff.
-            Inventory(inv.hash);
-
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
                 break;
         }
@@ -3477,9 +3256,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
                 if (fDebug)
                     printf("force request: %s\n", inv.ToString().c_str());
             }
-
-            // Track requests for our stuff
-            Inventory(inv.hash);
         }
     }
 
@@ -3986,14 +3762,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
             pto->PushGetBlocks(pindexBest, uint256(0));
         }
 
-        // Resend wallet transactions that haven't gotten in a block yet
-        // Except during reindex, importing and IBD, when old wallet
-        // transactions become unconfirmed and spams other nodes.
-        if (!fReindex && !fImporting && !IsInitialBlockDownload())
-        {
-            ResendWalletTransactions();
-        }
-
         // Address refresh broadcast
         static int64 nLastRebroadcast;
         if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60))
@@ -4069,15 +3837,6 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
                     uint256 hashRand = inv.hash ^ hashSalt;
                     hashRand = Hash(BEGIN(hashRand), END(hashRand));
                     bool fTrickleWait = ((hashRand & 3) != 0);
-
-                    // always trickle our own transactions
-                    if (!fTrickleWait)
-                    {
-                        CWalletTx wtx;
-                        if (GetTransaction(inv.hash, wtx))
-                            if (wtx.fFromMe)
-                                fTrickleWait = true;
-                    }
 
                     if (fTrickleWait)
                     {
@@ -4247,272 +4006,6 @@ public:
     }
 };
 
-CBlockTemplate* CreateNewBlock(CReserveKey& reservekey)
-{
-    // Create new block
-    auto_ptr<CBlockTemplate> pblocktemplate(new CBlockTemplate());
-    if(!pblocktemplate.get())
-        return NULL;
-    CBlock *pblock = &pblocktemplate->block; // pointer for convenience
-
-    // Create coinbase tx
-    CTransaction txNew;
-    txNew.vin.resize(1);
-    txNew.vin[0].prevout.SetNull();
-    txNew.vout.resize(1);
-    CPubKey pubkey;
-    if (!reservekey.GetReservedKey(pubkey))
-        return NULL;
-    txNew.vout[0].scriptPubKey << pubkey << OP_CHECKSIG;
-
-    // Primecoin HP: Optional automatic donations with every block found
-    if (dDonationPercentage > 0.001)
-    {
-        txNew.vout.resize(2);
-        txNew.vout[1].scriptPubKey.SetDestination(donationAddress.Get());
-    }
-
-    // Add our coinbase tx as first transaction
-    pblock->vtx.push_back(txNew);
-    pblocktemplate->vTxFees.push_back(-1); // updated at end
-    pblocktemplate->vTxSigOps.push_back(-1); // updated at end
-
-    // Largest block you're willing to create:
-    unsigned int nBlockMaxSize = GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
-    // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE-1000), nBlockMaxSize));
-
-    // Special compatibility rule before 15 May: limit size to 500,000 bytes:
-    if (GetAdjustedTime() < 1368576000)
-        nBlockMaxSize = std::min(nBlockMaxSize, (unsigned int)(MAX_BLOCK_SIZE_GEN));
-
-    // How much of the block should be dedicated to high-priority transactions,
-    // included regardless of the fees they pay
-    unsigned int nBlockPrioritySize = GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
-
-    // Minimum block size you want to create; block will be filled with free transactions
-    // until there are no more or the block reaches this size:
-    unsigned int nBlockMinSize = GetArg("-blockminsize", 0);
-    nBlockMinSize = std::min(nBlockMaxSize, nBlockMinSize);
-
-    // Collect memory pool transactions into the block
-    int64 nFees = 0;
-    {
-        LOCK2(cs_main, mempool.cs);
-        CBlockIndex* pindexPrev = pindexBest;
-        CCoinsViewCache view(*pcoinsTip, true);
-
-        // Priority order to process transactions
-        list<COrphan> vOrphan; // list memory doesn't move
-        map<uint256, vector<COrphan*> > mapDependers;
-        bool fPrintPriority = GetBoolArg("-printpriority");
-
-        // This vector will be sorted into a priority queue:
-        vector<TxPriority> vecPriority;
-        vecPriority.reserve(mempool.mapTx.size());
-        for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
-        {
-            CTransaction& tx = (*mi).second;
-            if (tx.IsCoinBase() || !tx.IsFinal())
-                continue;
-
-            COrphan* porphan = NULL;
-            double dPriority = 0;
-            int64 nTotalIn = 0;
-            bool fMissingInputs = false;
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
-            {
-                // Read prev transaction
-                if (!view.HaveCoins(txin.prevout.hash))
-                {
-                    // This should never happen; all transactions in the memory
-                    // pool should connect to either transactions in the chain
-                    // or other transactions in the memory pool.
-                    if (!mempool.mapTx.count(txin.prevout.hash))
-                    {
-                        printf("ERROR: mempool transaction missing input\n");
-                        if (fDebug) assert("mempool transaction missing input" == 0);
-                        fMissingInputs = true;
-                        if (porphan)
-                            vOrphan.pop_back();
-                        break;
-                    }
-
-                    // Has to wait for dependencies
-                    if (!porphan)
-                    {
-                        // Use list for automatic deletion
-                        vOrphan.push_back(COrphan(&tx));
-                        porphan = &vOrphan.back();
-                    }
-                    mapDependers[txin.prevout.hash].push_back(porphan);
-                    porphan->setDependsOn.insert(txin.prevout.hash);
-                    nTotalIn += mempool.mapTx[txin.prevout.hash].vout[txin.prevout.n].nValue;
-                    continue;
-                }
-                const CCoins &coins = view.GetCoins(txin.prevout.hash);
-
-                int64 nValueIn = coins.vout[txin.prevout.n].nValue;
-                nTotalIn += nValueIn;
-
-                int nConf = pindexPrev->nHeight - coins.nHeight + 1;
-
-                dPriority += (double)nValueIn * nConf;
-            }
-            if (fMissingInputs) continue;
-
-            // Priority is sum(valuein * age) / txsize
-            unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
-            dPriority /= nTxSize;
-
-            // This is a more accurate fee-per-kilobyte than is used by the client code, because the
-            // client code rounds up the size to the nearest 1K. That's good, because it gives an
-            // incentive to create smaller transactions.
-            double dFeePerKb =  double(nTotalIn-tx.GetValueOut()) / (double(nTxSize)/1000.0);
-
-            if (porphan)
-            {
-                porphan->dPriority = dPriority;
-                porphan->dFeePerKb = dFeePerKb;
-            }
-            else
-                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, &(*mi).second));
-        }
-
-        // Collect transactions into block
-        uint64 nBlockSize = 1000;
-        uint64 nBlockTx = 0;
-        int nBlockSigOps = 100;
-        bool fSortedByFee = (nBlockPrioritySize <= 0);
-
-        TxPriorityCompare comparer(fSortedByFee);
-        std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
-
-        while (!vecPriority.empty())
-        {
-            // Take highest priority transaction off the priority queue:
-            double dPriority = vecPriority.front().get<0>();
-            double dFeePerKb = vecPriority.front().get<1>();
-            CTransaction& tx = *(vecPriority.front().get<2>());
-
-            std::pop_heap(vecPriority.begin(), vecPriority.end(), comparer);
-            vecPriority.pop_back();
-
-            // Size limits
-            unsigned int nTxSize = ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
-            if (nBlockSize + nTxSize >= nBlockMaxSize)
-                continue;
-
-            // Legacy limits on sigOps:
-            unsigned int nTxSigOps = tx.GetLegacySigOpCount();
-            if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
-                continue;
-
-            // Skip free transactions if we're past the minimum block size:
-            if (fSortedByFee && (dFeePerKb < CTransaction::nMinTxFee) && (nBlockSize + nTxSize >= nBlockMinSize))
-                continue;
-
-            // Prioritize by fee once past the priority size or we run out of high-priority
-            // transactions:
-            if (!fSortedByFee &&
-                ((nBlockSize + nTxSize >= nBlockPrioritySize) || (dPriority < COIN * 144 / 250)))
-            {
-                fSortedByFee = true;
-                comparer = TxPriorityCompare(fSortedByFee);
-                std::make_heap(vecPriority.begin(), vecPriority.end(), comparer);
-            }
-
-            if (!tx.HaveInputs(view))
-                continue;
-
-            int64 nTxFees = tx.GetValueIn(view)-tx.GetValueOut();
-
-            nTxSigOps += tx.GetP2SHSigOpCount(view);
-            if (nBlockSigOps + nTxSigOps >= MAX_BLOCK_SIGOPS)
-                continue;
-
-            CValidationState state;
-            if (!tx.CheckInputs(state, view, true, SCRIPT_VERIFY_P2SH))
-                continue;
-
-            CTxUndo txundo;
-            uint256 hash = tx.GetHash();
-            tx.UpdateCoins(state, view, txundo, pindexPrev->nHeight+1, hash);
-
-            // Added
-            pblock->vtx.push_back(tx);
-            pblocktemplate->vTxFees.push_back(nTxFees);
-            pblocktemplate->vTxSigOps.push_back(nTxSigOps);
-            nBlockSize += nTxSize;
-            ++nBlockTx;
-            nBlockSigOps += nTxSigOps;
-            nFees += nTxFees;
-
-            if (fPrintPriority)
-            {
-                printf("priority %.1f feeperkb %.1f txid %s\n",
-                       dPriority, dFeePerKb, tx.GetHash().ToString().c_str());
-            }
-
-            // Add transactions that depend on this one to the priority queue
-            if (mapDependers.count(hash))
-            {
-                BOOST_FOREACH(COrphan* porphan, mapDependers[hash])
-                {
-                    if (!porphan->setDependsOn.empty())
-                    {
-                        porphan->setDependsOn.erase(hash);
-                        if (porphan->setDependsOn.empty())
-                        {
-                            vecPriority.push_back(TxPriority(porphan->dPriority, porphan->dFeePerKb, porphan->ptx));
-                            std::push_heap(vecPriority.begin(), vecPriority.end(), comparer);
-                        }
-                    }
-                }
-            }
-        }
-
-        nLastBlockTx = nBlockTx;
-        nLastBlockSize = nBlockSize;
-        if (fDebug && GetBoolArg("-printmining"))
-            printf("CreateNewBlock(): total size %"PRI64u"\n", nBlockSize);
-        pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock);
-        int64 nBlockValue = GetBlockValue(pblock->nBits, nFees);
-        // Primecoin HP: Optional automatic donations with every block found
-        if (dDonationPercentage > 0.001)
-        {
-            int64 nDonationValue = nBlockValue * dDonationPercentage / 100.0;
-            // Make sure the transaction will be valid
-            nDonationValue = std::max(nDonationValue, MIN_TXOUT_AMOUNT);
-            nDonationValue = std::min(nDonationValue, nBlockValue - MIN_TXOUT_AMOUNT);
-            pblock->vtx[0].vout[0].nValue = nBlockValue - nDonationValue;
-            pblock->vtx[0].vout[1].nValue = nDonationValue;
-        }
-        else
-            pblock->vtx[0].vout[0].nValue = nBlockValue;
-        pblocktemplate->vTxFees[0] = -nFees;
-
-        // Fill in header
-        pblock->hashPrevBlock  = pindexPrev->GetBlockHash();
-        pblock->UpdateTime(pindexPrev);
-        pblock->nNonce         = 0;
-        pblock->vtx[0].vin[0].scriptSig = CScript() << OP_0 << OP_0;
-        pblocktemplate->vTxSigOps[0] = pblock->vtx[0].GetLegacySigOpCount();
-
-        CBlockIndex indexDummy(*pblock);
-        indexDummy.pprev = pindexPrev;
-        indexDummy.nHeight = pindexPrev->nHeight + 1;
-        CCoinsViewCache viewNew(*pcoinsTip, true);
-        CValidationState state;
-        if (!pblock->ConnectBlock(state, &indexDummy, viewNew, true))
-            throw std::runtime_error("CreateNewBlock() : ConnectBlock failed");
-    }
-
-    return pblocktemplate.release();
-}
-
-
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce, bool fNoReset)
 {
     // Update nExtraNonce
@@ -4575,453 +4068,6 @@ void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash
 
     memcpy(pdata, &tmp.block, 128);
     memcpy(phash1, &tmp.hash1, 64);
-}
-
-
-bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
-{
-    CBigNum bnTarget = CBigNum().SetCompact(pblock->nBits);
-
-    if (!CheckProofOfWork(pblock->GetHeaderHash(), pblock->nBits, pblock->bnPrimeChainMultiplier, pblock->nPrimeChainType, pblock->nPrimeChainLength))
-        return error("PrimecoinMiner : failed proof-of-work check");
-
-    //// debug print
-    printf("PrimecoinMiner:\n");
-    printf("proof-of-work found  \n  target: %s\n  multiplier: %s\n  ", TargetToString(pblock->nBits).c_str(), pblock->bnPrimeChainMultiplier.GetHex().c_str());
-    pblock->print();
-    printf("generated %s\n", FormatMoney(pblock->vtx[0].vout[0].nValue).c_str());
-
-    // Found a solution
-    {
-        LOCK(cs_main);
-        if (pblock->hashPrevBlock != hashBestChain)
-            return error("PrimecoinMiner : generated block is stale");
-
-        // Remove key from key pool
-        reservekey.KeepKey();
-
-        // Track how many getdata requests this block gets
-        {
-            LOCK(wallet.cs_wallet);
-            wallet.mapRequestCount[pblock->GetHash()] = 0;
-        }
-
-        // Process this block the same as if we had received it from another node
-        CValidationState state;
-        if (!ProcessBlock(state, NULL, pblock))
-            return error("PrimecoinMiner : ProcessBlock, block not accepted");
-    }
-
-    return true;
-}
-
-void static BitcoinMiner(CWallet *pwallet)
-{
-    static CCriticalSection cs;
-    static bool fTimerStarted = false;
-    bool fPrintStatsAtEnd = false;
-    printf("PrimecoinMiner started\n");
-    SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("primecoin-miner");
-
-    // Each thread has its own key and counter
-    CReserveKey reservekey(pwallet);
-    unsigned int nExtraNonce = 0;
-
-    unsigned int nPrimorialMultiplier = nPrimorialHashFactor;
-    int nAdjustPrimorial = 1; // increase or decrease primorial factor
-    const unsigned int nRoundSamples = 40; // how many rounds to sample before adjusting primorial
-    double dSumBlockExpected = 0.0; // sum of expected blocks
-    int64 nSumRoundTime = 0; // sum of round times
-    unsigned int nRoundNum = 0; // number of rounds
-    double dAverageBlockExpectedPrev = 0.0; // previous average expected blocks per second
-    unsigned int nPrimorialMultiplierPrev = nPrimorialMultiplier; // previous primorial factor
-
-    // Primecoin HP: Increase initial primorial
-    if (fTestNet)
-        nPrimorialMultiplier = nInitialPrimorialMultiplierTestnet;
-    else
-        nPrimorialMultiplier = nInitialPrimorialMultiplier;
-
-    // Primecoin: Check if a fixed primorial was requested
-    unsigned int nFixedPrimorial = (unsigned int)GetArg("-primorial", 0);
-    if (nFixedPrimorial > 0)
-    {
-        nFixedPrimorial = std::max(nFixedPrimorial, nPrimorialHashFactor);
-        nPrimorialMultiplier = nFixedPrimorial;
-    }
-
-    // Primecoin: Allow choosing the mining protocol version
-    unsigned int nMiningProtocol = (unsigned int)GetArg("-miningprotocol", 1);
-
-    // Primecoin: Allocate data structures for mining
-    CSieveOfEratosthenes sieve;
-    CPrimalityTestParams testParams;
-
-    if (!fTimerStarted)
-    {
-        LOCK(cs);
-        if (!fTimerStarted)
-        {
-            fTimerStarted = true;
-            minerTimer.start();
-
-            // First thread will print the stats
-            fPrintStatsAtEnd = true;
-        }
-    }
-
-    // Many machines may be using the same key if they are sharing the same wallet
-    // Make extra nonce unique by setting it to a modulo of the high resolution clock's value
-    const unsigned int nExtraNonceModulo = 10000000;
-    boost::chrono::high_resolution_clock::time_point time_now = boost::chrono::high_resolution_clock::now();
-    boost::chrono::nanoseconds ns_now = boost::chrono::duration_cast<boost::chrono::nanoseconds>(time_now.time_since_epoch());
-    nExtraNonce = ns_now.count() % nExtraNonceModulo;
-
-    // Print the chosen extra nonce for debugging
-    printf("BitcoinMiner() : Setting initial extra nonce to %u\n", nExtraNonce);
-
-    try { loop {
-        while (vNodes.empty())
-            MilliSleep(1000);
-
-        //
-        // Create new block
-        //
-        unsigned int nTransactionsUpdatedLast = nTransactionsUpdated;
-        CBlockIndex* pindexPrev = pindexBest;
-
-	// pindexBest may be NULL (e.g. when doing a -reindex)
-	if (!pindexPrev) {
-		MilliSleep(1000);
-		continue;
-	}
-
-        auto_ptr<CBlockTemplate> pblocktemplate(CreateNewBlock(reservekey));
-        if (!pblocktemplate.get())
-            return;
-        CBlock *pblock = &pblocktemplate->block;
-        IncrementExtraNonce(pblock, pindexPrev, nExtraNonce, true);
-
-        if (fDebug && GetBoolArg("-printmining"))
-            printf("Running PrimecoinMiner with %"PRIszu" transactions in block (%u bytes)\n", pblock->vtx.size(),
-               ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
-
-        //
-        // Search
-        //
-        int64 nStart = GetTime();
-        bool fNewBlock = true;
-
-        // Primecoin: try to find hash divisible by primorial
-        unsigned int nHashFactor = PrimorialFast(nPrimorialHashFactor);
-
-        mpz_class mpzHash;
-        loop {
-            pblock->nNonce++;
-            if (pblock->nNonce >= 0xffff0000)
-                break;
-
-            // Check that the hash meets the minimum
-            uint256 phash = pblock->GetHeaderHash();
-            if (phash < hashBlockHeaderLimit)
-                continue;
-
-            mpz_set_uint256(mpzHash.get_mpz_t(), phash);
-            if (nMiningProtocol >= 2) {
-                // Primecoin: Mining protocol v0.2
-                // Try to find hash that is probable prime
-                if (!ProbablePrimalityTestWithTrialDivision(mpzHash, 1000, testParams))
-                    continue;
-            } else {
-                // Primecoin: Check that the hash is divisible by the fixed primorial
-                if (!mpz_divisible_ui_p(mpzHash.get_mpz_t(), nHashFactor))
-                    continue;
-            }
-
-            // Use the hash that passed the tests
-            break;
-        }
-        if (pblock->nNonce >= 0xffff0000)
-            continue;
-        // Primecoin: primorial fixed multiplier
-        mpz_class mpzPrimorial;
-        mpz_class mpzFixedMultiplier;
-        unsigned int nRoundTests = 0;
-        unsigned int nRoundPrimesHit = 0;
-        int64 nPrimeTimerStart = GetTimeMicros();
-        Primorial(nPrimorialMultiplier, mpzPrimorial);
-
-        loop
-        {
-            unsigned int nTests = 0;
-            unsigned int nPrimesHit = 0;
-            unsigned int vChainsFound[nMaxChainLength];
-            for (unsigned int i = 0; i < nMaxChainLength; i++)
-                vChainsFound[i] = 0;
-
-            // Meter primes/sec
-            static volatile int64 nPrimeCounter = 0;
-            static volatile int64 nTestCounter = 0;
-            static volatile double dChainExpected = 0.0;
-            static volatile double dBlockExpected = 0.0;
-            static volatile unsigned int vFoundChainCounter[nMaxChainLength];
-            int64 nMillisNow = GetTimeMillis();
-            if (nHPSTimerStart == 0)
-            {
-                nHPSTimerStart = nMillisNow;
-                nPrimeCounter = 0;
-                nTestCounter = 0;
-                dChainExpected = 0.0;
-                dBlockExpected = 0.0;
-                for (unsigned int i = 0; i < nMaxChainLength; i++)
-                    vFoundChainCounter[i] = 0;
-            }
-
-            // Primecoin: Mining protocol v0.2
-            if (nMiningProtocol >= 2)
-                mpzFixedMultiplier = mpzPrimorial;
-            else
-            {
-                if (mpzPrimorial > nHashFactor)
-                    mpzFixedMultiplier = mpzPrimorial / nHashFactor;
-                else
-                    mpzFixedMultiplier = 1;
-            }
-
-            // Primecoin: mine for prime chain
-            if (MineProbablePrimeChain(*pblock, mpzFixedMultiplier, fNewBlock, nTests, nPrimesHit, mpzHash, pindexPrev, vChainsFound, sieve, testParams))
-            {
-                SetThreadPriority(THREAD_PRIORITY_NORMAL);
-                nTotalBlocksFound++;
-                CheckWork(pblock, *pwalletMain, reservekey);
-                SetThreadPriority(THREAD_PRIORITY_LOWEST);
-            }
-            nRoundTests += nTests;
-            nRoundPrimesHit += nPrimesHit;
-
-#ifdef USE_GCC_BUILTINS
-            // Use atomic increment
-            __sync_add_and_fetch(&nPrimeCounter, nPrimesHit);
-            __sync_add_and_fetch(&nTestCounter, nTests);
-            __sync_add_and_fetch(&nTotalTests, nTests);
-            for (unsigned int i = 0; i < nMaxChainLength; i++)
-            {
-                __sync_add_and_fetch(&vTotalChainsFound[i], vChainsFound[i]);
-                __sync_add_and_fetch(&vFoundChainCounter[i], vChainsFound[i]);
-            }
-#else
-            nPrimeCounter += nPrimesHit;
-            nTestCounter += nTests;
-            nTotalTests += nTests;
-            for (unsigned int i = 0; i < nMaxChainLength; i++)
-            {
-                vTotalChainsFound[i] += vChainsFound[i];
-                vFoundChainCounter[i] += vChainsFound[i];
-            }
-#endif
-
-            nMillisNow = GetTimeMillis();
-            if (nMillisNow - nHPSTimerStart > 60000)
-            {
-                LOCK(cs);
-                nMillisNow = GetTimeMillis();
-                if (nMillisNow - nHPSTimerStart > 60000)
-                {
-                    int64 nTimeDiffMillis = nMillisNow - nHPSTimerStart;
-                    nHPSTimerStart = nMillisNow;
-                    double dPrimesPerMinute = 60000.0 * nPrimeCounter / nTimeDiffMillis;
-                    dPrimesPerSec = dPrimesPerMinute / 60.0;
-                    double dTestsPerMinute = 60000.0 * nTestCounter / nTimeDiffMillis;
-                    dChainsPerDay = 86400000.0 * dChainExpected / nTimeDiffMillis;
-                    dBlocksPerDay = 86400000.0 * dBlockExpected / nTimeDiffMillis;
-                    nPrimeCounter = 0;
-                    nTestCounter = 0;
-                    dChainExpected = 0;
-                    dBlockExpected = 0;
-                    static int64 nLogTime = 0;
-                    if (nMillisNow - nLogTime > 59000)
-                    {
-                        nLogTime = nMillisNow;
-                        if (fLogTimestamps)
-                            printf("primemeter %9.0f prime/h %9.0f test/h %3.8f chain/d %3.8f block/d\n", dPrimesPerMinute * 60.0, dTestsPerMinute * 60.0, dChainsPerDay, dBlocksPerDay);
-                        else
-                            printf("%s primemeter %9.0f prime/h %9.0f test/h %3.8f chain/d %3.8f block/d\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nLogTime / 1000).c_str(), dPrimesPerMinute * 60.0, dTestsPerMinute * 60.0, dChainsPerDay, dBlocksPerDay);
-                        PrintCompactStatistics(vFoundChainCounter);
-                    }
-                }
-            }
-
-            // Check for stop or if block needs to be rebuilt
-            boost::this_thread::interruption_point();
-            if (vNodes.empty())
-                break;
-            if (pblock->nNonce >= 0xffff0000)
-                break;
-            if (nTransactionsUpdated != nTransactionsUpdatedLast && GetTime() - nStart > 10)
-                break;
-            if (pindexPrev != pindexBest)
-                break;
-            if (fNewBlock)
-            {
-                // Primecoin: a sieve+primality round completes
-                // Primecoin: estimate time to block
-                unsigned int nCalcRoundTests = max(1u, nRoundTests);
-                // Make sure the estimated time is very high if only 0 primes were found
-                if (nRoundPrimesHit == 0)
-                    nCalcRoundTests *= 1000;
-                int64 nRoundTime = (GetTimeMicros() - nPrimeTimerStart); 
-                double dTimeExpected = (double) nRoundTime / nCalcRoundTests;
-                double dRoundChainExpected = (double) nRoundTests;
-                unsigned int nTargetLength = TargetGetLength(pblock->nBits);
-                unsigned int nRequestedLength = nTargetLength;
-                // Override target length if requested
-                if (nSieveTargetLength > 0)
-                    nRequestedLength = nSieveTargetLength;
-                // Calculate expected number of chains for requested length
-                for (unsigned int n = 0; n < nRequestedLength; n++)
-                {
-                    double dPrimeProbability = EstimateCandidatePrimeProbability(nPrimorialMultiplier, n, nMiningProtocol);
-                    dTimeExpected /= dPrimeProbability;
-                    dRoundChainExpected *= dPrimeProbability;
-                }
-                dChainExpected += dRoundChainExpected;
-                // Calculate expected number of blocks
-                double dRoundBlockExpected = dRoundChainExpected;
-                for (unsigned int n = nRequestedLength; n < nTargetLength; n++)
-                {
-                    double dPrimeProbability = EstimateNormalPrimeProbability(nPrimorialMultiplier, n, nMiningProtocol);
-                    dTimeExpected /= dPrimeProbability;
-                    dRoundBlockExpected *= dPrimeProbability;
-                }
-                // Calculate the effect of fractional difficulty
-                double dFractionalDiff = GetPrimeDifficulty(pblock->nBits) - nTargetLength;
-                double dExtraPrimeProbability = EstimateNormalPrimeProbability(nPrimorialMultiplier, nTargetLength, nMiningProtocol);
-                double dDifficultyFactor = ((1.0 - dFractionalDiff) * (1.0 - dExtraPrimeProbability) + dExtraPrimeProbability);
-                dRoundBlockExpected *= dDifficultyFactor;
-                dTimeExpected /= dDifficultyFactor;
-                dBlockExpected += dRoundBlockExpected;
-                // Calculate the sum of expected blocks and time
-                dSumBlockExpected += dRoundBlockExpected;
-                nSumRoundTime += nRoundTime;
-                nRoundNum++;
-                if (nRoundNum >= nRoundSamples)
-                {
-                    // Calculate average expected blocks per time
-                    double dAverageBlockExpected = dSumBlockExpected / ((double) nSumRoundTime / 1000000.0);
-                    // Compare to previous value
-                    if (dAverageBlockExpected > dAverageBlockExpectedPrev)
-                        nAdjustPrimorial = (nPrimorialMultiplier >= nPrimorialMultiplierPrev) ? 1 : -1;
-                    else
-                        nAdjustPrimorial = (nPrimorialMultiplier >= nPrimorialMultiplierPrev) ? -1 : 1;
-                    if (fDebug && GetBoolArg("-printprimorial"))
-                        printf("PrimecoinMiner() : Rounds total: num=%u primorial=%u block/s=%3.12f\n", nRoundNum, nPrimorialMultiplier, dAverageBlockExpected);
-                    // Store the new value and reset
-                    dAverageBlockExpectedPrev = dAverageBlockExpected;
-                    nPrimorialMultiplierPrev = nPrimorialMultiplier;
-                    dSumBlockExpected = 0.0;
-                    nSumRoundTime = 0;
-                    nRoundNum = 0;
-                }
-                if (fDebug && GetBoolArg("-printmining"))
-                {
-                    double dPrimeProbabilityBegin = EstimateCandidatePrimeProbability(nPrimorialMultiplier, 0, nMiningProtocol);
-                    double dPrimeProbabilityEnd = EstimateCandidatePrimeProbability(nPrimorialMultiplier, nTargetLength - 1, nMiningProtocol);
-                    printf("PrimecoinMiner() : Round primorial=%u tests=%u primes=%u time=%uus pprob=%1.6f pprob2=%1.6f pprobextra=%1.6f tochain=%6.3fd expect=%3.12f expectblock=%3.12f\n", nPrimorialMultiplier, nRoundTests, nRoundPrimesHit, (unsigned int) nRoundTime, dPrimeProbabilityBegin, dPrimeProbabilityEnd, dExtraPrimeProbability, ((dTimeExpected/1000000.0))/86400.0, dRoundChainExpected, dRoundBlockExpected);
-                }
-
-                // Primecoin: primorial always needs to be incremented if only 0 primes were found
-                if (nRoundPrimesHit == 0)
-                    nAdjustPrimorial = 1;
-
-                // Primecoin: reset sieve+primality round timer
-                nPrimeTimerStart = GetTimeMicros();
-                nRoundTests = 0;
-                nRoundPrimesHit = 0;
-
-                // Primecoin: update time and nonce
-                pblock->nTime = max(pblock->nTime, (unsigned int) GetAdjustedTime());
-                loop {
-                    pblock->nNonce++;
-                    if (pblock->nNonce >= 0xffff0000)
-                        break;
-
-                    // Check that the hash meets the minimum
-                    uint256 phash = pblock->GetHeaderHash();
-                    if (phash < hashBlockHeaderLimit)
-                        continue;
-
-                    mpz_set_uint256(mpzHash.get_mpz_t(), phash);
-                    if (nMiningProtocol >= 2) {
-                        // Primecoin: Mining protocol v0.2
-                        // Try to find hash that is probable prime
-                        if (!ProbablePrimalityTestWithTrialDivision(mpzHash, 1000, testParams))
-                            continue;
-                    } else {
-                        // Primecoin: Check that the hash is divisible by the fixed primorial
-                        if (!mpz_divisible_ui_p(mpzHash.get_mpz_t(), nHashFactor))
-                            continue;
-                    }
-
-                    // Use the hash that passed the tests
-                    break;
-                }
-                if (pblock->nNonce >= 0xffff0000)
-                    break;
-
-                // Primecoin: dynamic adjustment of primorial multiplier
-                if (nFixedPrimorial == 0 && nAdjustPrimorial != 0) {
-                    if (nAdjustPrimorial > 0)
-                    {
-                        if (!PrimeTableGetNextPrime(nPrimorialMultiplier))
-                            error("PrimecoinMiner() : primorial increment overflow");
-                    }
-                    else if (nPrimorialMultiplier > nPrimorialHashFactor)
-                    {
-                        if (!PrimeTableGetPreviousPrime(nPrimorialMultiplier))
-                            error("PrimecoinMiner() : primorial decrement overflow");
-                    }
-                    Primorial(nPrimorialMultiplier, mpzPrimorial);
-                    nAdjustPrimorial = 0;
-                }
-            }
-        }
-
-    } }
-    catch (boost::thread_interrupted)
-    {
-        printf("PrimecoinMiner terminated\n");
-        // Print statistics
-        if (fPrintStatsAtEnd)
-        {
-            PrintMinerStatistics();
-            fTimerStarted = false;
-        }
-        throw;
-    }
-}
-
-void GenerateBitcoins(bool fGenerate, CWallet* pwallet)
-{
-    static boost::thread_group* minerThreads = NULL;
-
-    int nThreads = GetArg("-genproclimit", -1);
-    if (nThreads < 0)
-        nThreads = boost::thread::hardware_concurrency();
-
-    if (minerThreads != NULL)
-    {
-        minerThreads->interrupt_all();
-        delete minerThreads;
-        minerThreads = NULL;
-    }
-
-    if (nThreads == 0 || !fGenerate)
-        return;
-
-    minerThreads = new boost::thread_group();
-    for (int i = 0; i < nThreads; i++)
-        minerThreads->create_thread(boost::bind(&BitcoinMiner, pwallet));
 }
 
 // Amount compression:

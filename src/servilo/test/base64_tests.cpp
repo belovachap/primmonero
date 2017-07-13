@@ -1,7 +1,9 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include <boost/test/unit_test.hpp>
 
 #include "main.h"
-#include "wallet.h"
 #include "util.h"
 
 BOOST_AUTO_TEST_SUITE(base64_tests)

@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #define BOOST_TEST_MODULE Primmonerad Testa Kolekto
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
@@ -5,10 +8,9 @@
 #include "db.h"
 #include "txdb.h"
 #include "main.h"
-#include "wallet.h"
+#include "ui_interface.h"
 #include "util.h"
 
-CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 
 extern bool fPrintToConsole;
@@ -30,10 +32,6 @@ struct TestingSetup {
         pcoinsdbview = new CCoinsViewDB(1 << 23, true);
         pcoinsTip = new CCoinsViewCache(*pcoinsdbview);
         InitBlockIndex();
-        bool fFirstRun;
-        pwalletMain = new CWallet("wallet.dat");
-        pwalletMain->LoadWallet(fFirstRun);
-        RegisterWallet(pwalletMain);
         nScriptCheckThreads = 3;
         for (int i=0; i < nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck);
@@ -42,8 +40,6 @@ struct TestingSetup {
     {
         threadGroup.interrupt_all();
         threadGroup.join_all();
-        delete pwalletMain;
-        pwalletMain = NULL;
         delete pcoinsTip;
         delete pcoinsdbview;
         delete pblocktree;

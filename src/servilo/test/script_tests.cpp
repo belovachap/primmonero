@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -13,7 +16,6 @@
 #include <json_spirit_utils.h>
 
 #include "main.h"
-#include "wallet.h"
 
 using namespace std;
 using namespace json_spirit;
