@@ -103,7 +103,6 @@ HEADERS += \
     bitcoinaddressvalidator.h \
     bitcoinamountfield.h \
     bitcoingui.h \
-    bitcoinrpc.h \
     bitcoinunits.h \
     bloom.h \
     checkpoints.h \
@@ -171,7 +170,6 @@ SOURCES += \
     bitcoinaddressvalidator.cpp \
     bitcoinamountfield.cpp \
     bitcoingui.cpp \
-    bitcoinrpc.cpp \
     bitcoinunits.cpp \
     bloom.cpp \
     checkpoints.cpp \
@@ -198,12 +196,6 @@ SOURCES += \
     protocol.cpp \
     qvalidatedlineedit.cpp \
     qvaluecombobox.cpp \
-    rpcblockchain.cpp \
-    rpcdump.cpp \
-    rpcmining.cpp \
-    rpcnet.cpp \
-    rpcrawtransaction.cpp \
-    rpcwallet.cpp \
     script.cpp \
     sendcoinsdialog.cpp \
     sendcoinsentry.cpp \

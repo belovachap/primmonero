@@ -69,7 +69,7 @@ static bool ThreadSafeAskFee(int64 nFeeRequired)
 {
     if(!guiref)
         return false;
-    if(nFeeRequired < CTransaction::nMinTxFee || nFeeRequired <= nTransactionFee || fDaemon)
+    if(nFeeRequired < CTransaction::nMinTxFee || nFeeRequired <= nTransactionFee)
         return true;
 
     bool payFee = false;

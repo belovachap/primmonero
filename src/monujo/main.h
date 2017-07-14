@@ -162,18 +162,6 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
-/** Run the miner threads */
-void GenerateBitcoins(bool fGenerate, CWallet* pwallet);
-/** Generate a new block, without valid proof-of-work */
-CBlockTemplate* CreateNewBlock(CReserveKey& reservekey);
-/** Modify the extranonce in a block */
-void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce, bool fNoReset = false);
-/** Do mining precalculation */
-void FormatHashBuffers(CBlock* pblock, char* pmidstate, char* pdata, char* phash1);
-/** Check mined block */
-bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey);
-/** Check whether a block hash satisfies the proof-of-work requirement specified by nBits */
-bool CheckProofOfWork(uint256 hashBlockHeader, unsigned int nBits, const CBigNum& bnPrimeChainMultiplier, unsigned int& nChainType, unsigned int& nChainLength);
 /** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
 unsigned int ComputeMinWork(unsigned int nBase, int64 nTime);
 /** Get the number of active peers */

@@ -146,9 +146,6 @@ extern bool fDebug;
 extern bool fDebugNet;
 extern bool fPrintToConsole;
 extern bool fPrintToDebugger;
-extern bool fDaemon;
-extern bool fServer;
-extern bool fCommandLine;
 extern std::string strMiscWarning;
 extern bool fTestNet;
 extern bool fNoListen;
@@ -217,9 +214,6 @@ boost::filesystem::path GetDefaultDataDir();
 const boost::filesystem::path &GetDataDir(bool fNetSpecific = true);
 boost::filesystem::path GetConfigFile();
 boost::filesystem::path GetPidFile();
-#ifndef WIN32
-void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
-#endif
 void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
 #ifdef WIN32
 boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);

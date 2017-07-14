@@ -7,7 +7,6 @@
 
 #include "txdb.h"
 #include "walletdb.h"
-#include "bitcoinrpc.h"
 #include "net.h"
 #include "init.h"
 #include "util.h"
@@ -21,9 +20,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <openssl/crypto.h>
 
-#ifndef WIN32
 #include <signal.h>
-#endif
 
 using namespace std;
 using namespace boost;
@@ -31,14 +28,7 @@ using namespace boost;
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 
-#ifdef WIN32
-// Win32 LevelDB doesn't use filedescriptors, and the ones used for
-// accessing block files, don't count towards to fd_set size limit
-// anyway.
-#define MIN_CORE_FILEDESCRIPTORS 0
-#else
 #define MIN_CORE_FILEDESCRIPTORS 150
-#endif
 
 // Used to pass flags to the Bind() function
 enum BindFlags {
@@ -98,8 +88,6 @@ void Shutdown()
     if (!lockShutdown) return;
 
     RenameThread("primecoin-shutoff");
-    nTransactionsUpdated++;
-    StopRPCThreads();
     bitdb.Flush(false);
     StopNode();
     {
@@ -127,11 +115,8 @@ void Shutdown()
 void DetectShutdownThread(boost::thread_group* threadGroup)
 {
     // Tell the main threads to shutdown.
-    while (!fRequestShutdown) MilliSleep(200);
- 
-    GenerateBitcoins(false, NULL);
+    while (!fRequestShutdown) MilliSleep(200); 
     threadGroup->interrupt_all();
-
 }
 
 void HandleSIGTERM(int)
@@ -199,29 +184,6 @@ bool AppInit(int argc, char* argv[])
             int ret = CommandLineRPC(argc, argv);
             exit(ret);
         }
-#if !defined(WIN32)
-        fDaemon = GetBoolArg("-daemon");
-        if (fDaemon)
-        {
-            // Daemonize
-            pid_t pid = fork();
-            if (pid < 0)
-            {
-                fprintf(stderr, "Error: fork() returned %d errno %d\n", pid, errno);
-                return false;
-            }
-            if (pid > 0) // Parent process, pid is child process id
-            {
-                CreatePidFile(GetPidFile(), pid);
-                return true;
-            }
-            // Child process falls through to rest of initialization
-
-            pid_t sid = setsid();
-            if (sid < 0)
-                fprintf(stderr, "Error: setsid() returned %d errno %d\n", sid, errno);
-        }
-#endif
 
         detectShutdownThread = new boost::thread(boost::bind(&DetectShutdownThread, &threadGroup));
         fRet = AppInit2(threadGroup);
@@ -258,7 +220,7 @@ int main(int argc, char* argv[])
 
     fRet = AppInit(argc, argv);
 
-    if (fRet && fDaemon)
+    if (fRet)
         return 0;
 
     return (fRet ? 0 : 1);
@@ -517,15 +479,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     else
         fDebugNet = GetBoolArg("-debugnet");
 
-    if (fDaemon)
-        fServer = true;
-    else
-        fServer = GetBoolArg("-server");
-
-    /* force fServer when running without GUI */
-#if !defined(QT_GUI)
-    fServer = true;
-#endif
     fPrintToConsole = GetBoolArg("-printtoconsole");
     fPrintToDebugger = GetBoolArg("-printtodebugger");
     fLogTimestamps = GetBoolArg("-logtimestamps", true);
@@ -590,9 +543,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     printf("Using data directory %s\n", strDataDir.c_str());
     printf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
     std::ostringstream strErrors;
-
-    if (fDaemon)
-        fprintf(stdout, "Primecoin server starting\n");
 
     if (nScriptCheckThreads) {
         printf("Using %u threads for script verification\n", nScriptCheckThreads);
@@ -1032,12 +982,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     printf("mapAddressBook.size() = %"PRIszu"\n",  pwalletMain->mapAddressBook.size());
 
     StartNode(threadGroup);
-
-    if (fServer)
-        StartRPCThreads();
-
-    // Generate coins in the background
-    GenerateBitcoins(GetBoolArg("-gen", false), pwalletMain);
 
     // ********************************************************* Step 12: finished
 
