@@ -113,7 +113,6 @@ xCXXFLAGS=\
 xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
 
 OBJS=\
-    obj/alert.o \
     obj/version.o \
     obj/checkpoints.o \
     obj/netbase.o \
@@ -140,7 +139,7 @@ OBJS=\
 all: primmonera-servilo
 
 testo: testa-primmonera-servilo FORCE
-	#./testa-primmonera-servilo
+	./testa-primmonera-servilo
 
 # auto-generated dependencies:
 -include obj/*.P
