@@ -130,7 +130,6 @@ OBJS=\
     obj/util.o \
     obj/hash.o \
     obj/bloom.o \
-    obj/noui.o \
     obj/leveldb.o \
     obj/txdb.o \
     obj/prime.o \

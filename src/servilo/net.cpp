@@ -8,12 +8,7 @@
 #include "net.h"
 #include "init.h"
 #include "addrman.h"
-#include "ui_interface.h"
 #include "script.h"
-
-#ifdef WIN32
-#include <string.h>
-#endif
 
 // Dump addresses to peers.dat every 15 minutes (900s)
 #define DUMP_ADDRESSES_INTERVAL 900
@@ -808,9 +803,7 @@ void ThreadSocketHandler()
         if (vNodes.size() != nPrevNodeCount)
         {
             nPrevNodeCount = vNodes.size();
-            uiInterface.NotifyNumConnectionsChanged(vNodes.size());
         }
-
 
         //
         // Find which sockets have data to receive
@@ -1557,9 +1550,9 @@ bool BindListenPort(const CService &addrBind, string& strError)
     {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
-            strError = strprintf(_("Unable to bind to %s on this computer. Primecoin is probably already running."), addrBind.ToString().c_str());
+            strError = strprintf("Unable to bind to %s on this computer. Primecoin is probably already running.", addrBind.ToString().c_str());
         else
-            strError = strprintf(_("Unable to bind to %s on this computer (bind returned error %d, %s)"), addrBind.ToString().c_str(), nErr, strerror(nErr));
+            strError = strprintf("Unable to bind to %s on this computer (bind returned error %d, %s)", addrBind.ToString().c_str(), nErr, strerror(nErr));
         printf("%s\n", strError.c_str());
         return false;
     }

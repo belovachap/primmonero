@@ -8,13 +8,7 @@
 #include "db.h"
 #include "txdb.h"
 #include "main.h"
-#include "ui_interface.h"
 #include "util.h"
-
-CClientUIInterface uiInterface;
-
-extern bool fPrintToConsole;
-extern void noui_connect();
 
 struct TestingSetup {
     CCoinsViewDB *pcoinsdbview;
@@ -22,8 +16,6 @@ struct TestingSetup {
     boost::thread_group threadGroup;
 
     TestingSetup() {
-        fPrintToDebugger = true; // don't want to write to debug.log file
-        noui_connect();
         bitdb.MakeMock();
         pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
         boost::filesystem::create_directories(pathTemp);

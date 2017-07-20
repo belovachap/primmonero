@@ -1,7 +1,7 @@
 # Kopirajto (c) 2017 Chapman Shoop
 # Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
-MAKE=make -j8
+MAKE=make -j4
 
 # Ĉiuj
 .PHONY: all
