@@ -41,6 +41,7 @@ LIBS += \
    -l gmp \
    -l leveldb \
    -l memenv \
+   -l gcov
 
 TESTLIBS += -l boost_unit_test_framework
 ifneq (${USE_IPV6}, -)
@@ -145,7 +146,7 @@ testo: testa-primmonera-servilo FORCE
 -include obj-test/*.P
 
 obj/build.h: FORCE
-	/bin/sh ../../share/genbuild.sh obj/build.h
+	/bin/sh genbuild.sh obj/build.h
 version.cpp: obj/build.h
 DEFS += -DHAVE_BUILD_INFO
 
