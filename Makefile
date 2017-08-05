@@ -9,7 +9,7 @@ all:
 	make testoj
 	make programoj
 
-# Puri
+# Puras
 .PHONY: puras
 puras:
 	make puras-servilo
