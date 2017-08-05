@@ -125,12 +125,12 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
         boost::this_thread::interruption_point();
         try {
             leveldb::Slice slKey = pcursor->key();
-            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, VERSION);
             char chType;
             ssKey >> chType;
             if (chType == 'c') {
                 leveldb::Slice slValue = pcursor->value();
-                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, VERSION);
                 CCoins coins;
                 ssValue >> coins;
                 uint256 txhash;
@@ -191,7 +191,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
 {
     leveldb::Iterator *pcursor = NewIterator();
 
-    CDataStream ssKeySet(SER_DISK, CLIENT_VERSION);
+    CDataStream ssKeySet(SER_DISK, VERSION);
     ssKeySet << make_pair('b', uint256(0));
     pcursor->Seek(ssKeySet.str());
 
@@ -200,12 +200,12 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
         boost::this_thread::interruption_point();
         try {
             leveldb::Slice slKey = pcursor->key();
-            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, CLIENT_VERSION);
+            CDataStream ssKey(slKey.data(), slKey.data()+slKey.size(), SER_DISK, VERSION);
             char chType;
             ssKey >> chType;
             if (chType == 'b') {
                 leveldb::Slice slValue = pcursor->value();
-                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, CLIENT_VERSION);
+                CDataStream ssValue(slValue.data(), slValue.data()+slValue.size(), SER_DISK, VERSION);
                 CDiskBlockIndex diskindex;
                 ssValue >> diskindex;
 

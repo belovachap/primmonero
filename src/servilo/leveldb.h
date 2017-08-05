@@ -29,12 +29,12 @@ private:
 
 public:
     template<typename K, typename V> void Write(const K& key, const V& value) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(SER_DISK, VERSION);
         ssKey.reserve(ssKey.GetSerializeSize(key));
         ssKey << key;
         leveldb::Slice slKey(&ssKey[0], ssKey.size());
 
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        CDataStream ssValue(SER_DISK, VERSION);
         ssValue.reserve(ssValue.GetSerializeSize(value));
         ssValue << value;
         leveldb::Slice slValue(&ssValue[0], ssValue.size());
@@ -43,7 +43,7 @@ public:
     }
 
     template<typename K> void Erase(const K& key) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(SER_DISK, VERSION);
         ssKey.reserve(ssKey.GetSerializeSize(key));
         ssKey << key;
         leveldb::Slice slKey(&ssKey[0], ssKey.size());
@@ -81,7 +81,7 @@ public:
     ~CLevelDB();
 
     template<typename K, typename V> bool Read(const K& key, V& value) throw(leveldb_error) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(SER_DISK, VERSION);
         ssKey.reserve(ssKey.GetSerializeSize(key));
         ssKey << key;
         leveldb::Slice slKey(&ssKey[0], ssKey.size());
@@ -95,7 +95,7 @@ public:
             HandleError(status);
         }
         try {
-            CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, CLIENT_VERSION);
+            CDataStream ssValue(strValue.data(), strValue.data() + strValue.size(), SER_DISK, VERSION);
             ssValue >> value;
         } catch(std::exception &e) {
             return false;
@@ -110,7 +110,7 @@ public:
     }
 
     template<typename K> bool Exists(const K& key) throw(leveldb_error) {
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(SER_DISK, VERSION);
         ssKey.reserve(ssKey.GetSerializeSize(key));
         ssKey << key;
         leveldb::Slice slKey(&ssKey[0], ssKey.size());

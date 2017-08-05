@@ -7,20 +7,21 @@
 
 #include <exception>
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/log/trivial.hpp>
 #include <openssl/crypto.h>
 #include <signal.h>
 
-#include "db.h"
-#include "txdb.h"
-#include "net.h"
-#include "init.h"
-#include "util.h"
 #include "checkpointsync.h"
+#include "db.h"
+#include "init.h"
+#include "net.h"
+#include "txdb.h"
+#include "util.h"
 
 #define MIN_CORE_FILEDESCRIPTORS 150
 
@@ -436,14 +437,10 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("Primecoin High Performance version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    if (!fLogTimestamps)
-        printf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    printf("Using data directory %s\n", strDataDir.c_str());
-    printf("Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
+
+    BOOST_LOG_TRIVIAL(info) << ServiloNomo();
+    BOOST_LOG_TRIVIAL(info) << "Data Directory: " << GetDefaultDataDir().string();
+
     std::ostringstream strErrors;
 
     if (fDaemon)

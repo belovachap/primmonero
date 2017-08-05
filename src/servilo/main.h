@@ -755,7 +755,7 @@ public:
     bool WriteToDisk(CDiskBlockPos &pos, const uint256 &hashBlock)
     {
         // Open history file to append
-        CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
+        CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, VERSION);
         if (!fileout)
             return error("CBlockUndo::WriteToDisk() : OpenUndoFile failed");
 
@@ -787,7 +787,7 @@ public:
     bool ReadFromDisk(const CDiskBlockPos &pos, const uint256 &hashBlock)
     {
         // Open history file to read
-        CAutoFile filein = CAutoFile(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
+        CAutoFile filein = CAutoFile(OpenUndoFile(pos, true), SER_DISK, VERSION);
         if (!filein)
             return error("CBlockUndo::ReadFromDisk() : OpenBlockFile failed");
 
@@ -1427,7 +1427,7 @@ public:
     bool WriteToDisk(CDiskBlockPos &pos)
     {
         // Open history file to append
-        CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
+        CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, VERSION);
         if (!fileout)
             return error("CBlock::WriteToDisk() : OpenBlockFile failed");
 
@@ -1455,7 +1455,7 @@ public:
         SetNull();
 
         // Open history file to read
-        CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+        CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, VERSION);
         if (!filein)
             return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
 

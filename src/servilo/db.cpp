@@ -268,7 +268,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
             {
                 bool fTmp = fReadOnly;
                 fReadOnly = false;
-                WriteVersion(CLIENT_VERSION);
+                WriteVersion(VERSION);
                 fReadOnly = fTmp;
             }
 
@@ -367,8 +367,8 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                     if (pcursor)
                         while (fSuccess)
                         {
-                            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-                            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+                            CDataStream ssKey(SER_DISK, VERSION);
+                            CDataStream ssValue(SER_DISK, VERSION);
                             int ret = db.ReadAtCursor(pcursor, ssKey, ssValue, DB_NEXT);
                             if (ret == DB_NOTFOUND)
                             {
@@ -388,7 +388,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                             {
                                 // Update version:
                                 ssValue.clear();
-                                ssValue << CLIENT_VERSION;
+                                ssValue << VERSION;
                             }
                             Dbt datKey(&ssKey[0], ssKey.size());
                             Dbt datValue(&ssValue[0], ssValue.size());
@@ -499,7 +499,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     std::string tmpfn = strprintf("peers.dat.%04x", randv);
 
     // serialize addresses, checksum data up to that point, then append csum
-    CDataStream ssPeers(SER_DISK, CLIENT_VERSION);
+    CDataStream ssPeers(SER_DISK, VERSION);
     ssPeers << FLATDATA(pchMessageStart);
     ssPeers << addr;
     uint256 hash = Hash(ssPeers.begin(), ssPeers.end());
@@ -508,7 +508,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     // open temp output file, and associate with CAutoFile
     boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
     FILE *file = fopen(pathTmp.string().c_str(), "wb");
-    CAutoFile fileout = CAutoFile(file, SER_DISK, CLIENT_VERSION);
+    CAutoFile fileout = CAutoFile(file, SER_DISK, VERSION);
     if (!fileout)
         return error("CAddrman::Write() : open failed");
 
@@ -533,7 +533,7 @@ bool CAddrDB::Read(CAddrMan& addr)
 {
     // open input file, and associate with CAutoFile
     FILE *file = fopen(pathAddr.string().c_str(), "rb");
-    CAutoFile filein = CAutoFile(file, SER_DISK, CLIENT_VERSION);
+    CAutoFile filein = CAutoFile(file, SER_DISK, VERSION);
     if (!filein)
         return error("CAddrman::Read() : open failed");
 
@@ -556,7 +556,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     }
     filein.fclose();
 
-    CDataStream ssPeers(vchData, SER_DISK, CLIENT_VERSION);
+    CDataStream ssPeers(vchData, SER_DISK, VERSION);
 
     // verify stored checksum matches input data
     uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());

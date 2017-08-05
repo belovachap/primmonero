@@ -3,13 +3,9 @@
 # Kopirajto (c) 2017 Chapman Shoop
 # Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
-# :=1 --> Enable IPv6 support
-# :=0 --> Disable IPv6 support
-USE_IPV6:=1
-
 LINK:=$(CXX)
 
-DEFS=-DBOOST_SPIRIT_THREADSAFE -D_FILE_OFFSET_BITS=64
+DEFS=-DBOOST_SPIRIT_THREADSAFE -D_FILE_OFFSET_BITS=64 -DUSE_IPV6=1 -DBOOST_LOG_DYN_LINK
 
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
 LIBS = $(addprefix -L,$(BOOST_LIB_PATH) $(BDB_LIB_PATH) $(OPENSSL_LIB_PATH))
@@ -28,11 +24,12 @@ else
 endif
 
 LIBS += \
-   -l boost_system \
-   -l boost_filesystem \
-   -l boost_program_options \
-   -l boost_thread \
    -l boost_chrono \
+   -l boost_filesystem \
+   -l boost_log \
+   -l boost_program_options \
+   -l boost_system \
+   -l boost_thread \
    -l boost_timer \
    -l db_cxx \
    -l ssl \
@@ -44,14 +41,6 @@ LIBS += \
    -l gcov
 
 TESTLIBS += -l boost_unit_test_framework
-ifneq (${USE_IPV6}, -)
-	DEFS += -DUSE_IPV6=$(USE_IPV6)
-endif
-
-ifeq ($(RELEASE), 1)
-	# Linux: Enable bundling libgmp.so with the binary
-	LIBS += -Wl,-rpath,\$$ORIGIN
-endif
 
 LIBS += \
    -l z \
@@ -78,25 +67,14 @@ LIBS += \
     # which would later be jumped to.
     LDHARDENING+=-Wl,-z,relro -Wl,-z,now
 
-    # Build position independent code to take advantage of Address Space Layout Randomization
-    # offered by some kernels.
-    # see doc/build-unix.txt for more information.
-    ifdef PIE
-        HARDENING+=-fPIE
-        LDHARDENING+=-pie
-    endif
-
     # -D_FORTIFY_SOURCE=2 does some checking for potentially exploitable code patterns in
     # the source such overflowing a statically defined buffer.
     HARDENING+=-D_FORTIFY_SOURCE=2
 #
 
-DEBUGFLAGS=-g
-
 # CXXFLAGS can be specified on the make command line, so we use xCXXFLAGS that only
 # adds some defaults in front. Unfortunately, CXXFLAGS=... $(CXXFLAGS) does not work.
 xCXXFLAGS=\
-    $(DEBUGFLAGS) \
     $(DEFS) \
     $(HARDENING) \
     $(CXXFLAGS) \
@@ -144,11 +122,6 @@ testo: testa-primmonera-servilo FORCE
 # auto-generated dependencies:
 -include obj/*.P
 -include obj-test/*.P
-
-obj/build.h: FORCE
-	/bin/sh genbuild.sh obj/build.h
-version.cpp: obj/build.h
-DEFS += -DHAVE_BUILD_INFO
 
 obj/%.o: %.cpp
 	$(CXX) -c $(xCXXFLAGS) -MMD -MF $(@:%.o=%.d) -o $@ $<

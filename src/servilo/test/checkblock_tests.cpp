@@ -33,7 +33,7 @@ read_block(const std::string& filename, CBlock& block)
 
     fseek(fp, 8, SEEK_SET); // skip msgheader/size
 
-    CAutoFile filein = CAutoFile(fp, SER_DISK, CLIENT_VERSION);
+    CAutoFile filein = CAutoFile(fp, SER_DISK, VERSION);
     if (!filein) return false;
 
     filein >> block;
