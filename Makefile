@@ -6,9 +6,7 @@ MAKE=make -j4
 # Ĉiuj
 .PHONY: all
 all:
-	make puras
 	make testoj
-	make puras
 	make programoj
 
 # Puri
