@@ -15,42 +15,24 @@ all:
 .PHONY: puras
 puras:
 	make puras-servilo
-	make puras-monujo
 
 .PHONY: puras-servilo
 puras-servilo:
 	$(MAKE) -C src/servilo clean
 
-.PHONY: puras-monujo
-puras-monujo:
-	cd src/monujo && qmake Primmonera-monujo.pro
-	$(MAKE) -C src/monujo clean && rm src/monujo/Makefile
-	cd src/monujo && qmake Testa-primmonera-monujo.pro
-	$(MAKE) -C src/monujo clean && rm src/monujo/Makefile
-
 # Testoj
 .PHONY: testoj
-testoj: testa-servilo testa-monujo
+testoj: testa-servilo
 
 .PHONY: testa-servilo
 testa-servilo:
 	$(MAKE) -C src/servilo testo
 
-.PHONY: testa-monujo
-testa-monujo:
-	cd src/monujo && qmake Testa-primmonera-monujo.pro
-	$(MAKE) -C src/monujo
-	./src/monujo/testa-primmonera-monujo
-
 # Programoj
 .PHONY: programoj
-programoj: servilo monujo
+programoj: servilo
 
 .PHONY: servilo
 servilo:
 	$(MAKE) -C src/servilo
 
-.PHONY: monujo
-monujo:
-	cd src/monujo && qmake Primmonera-monujo.pro
-	$(MAKE) -C src/monujo
