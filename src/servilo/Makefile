@@ -93,7 +93,6 @@ xLDFLAGS=$(LDHARDENING) $(LDFLAGS)
 
 OBJS=\
     obj/version.o \
-    obj/checkpoints.o \
     obj/netbase.o \
     obj/addrman.o \
     obj/crypter.o \
@@ -111,8 +110,7 @@ OBJS=\
     obj/bloom.o \
     obj/leveldb.o \
     obj/txdb.o \
-    obj/prime.o \
-    obj/checkpointsync.o
+    obj/prime.o
 
 all: primmonera-servilo
 

@@ -16,7 +16,6 @@
 #include <openssl/crypto.h>
 #include <signal.h>
 
-#include "checkpointsync.h"
 #include "db.h"
 #include "init.h"
 #include "net.h"
@@ -415,12 +414,6 @@ bool AppInit2(boost::thread_group& threadGroup)
             return InitError(strprintf("Invalid amount for -paytxfee=<amount>: '%s'", mapArgs["-paytxfee"].c_str()));
         if (nTransactionFee > 0.25 * COIN)
             InitWarning("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.");
-    }
-
-    if (mapArgs.count("-checkpointkey")) // ppcoin: checkpoint master priv key
-    {
-        if (!SetCheckpointPrivKey(GetArg("-checkpointkey", "")))
-            return InitError("Unable to sign checkpoint, wrong checkpointkey?");
     }
 
     //  Step 4: application initialization: dir lock, daemonize, pidfile, debug log

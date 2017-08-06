@@ -8,7 +8,7 @@
 
 #include <string>
 
-static const int VERSION_MAJOR = 0;
+static const int VERSION_MAJOR = 1;
 static const int VERSION_MINOR = 0;
 static const int VERSION_PATCH = 0;
 
