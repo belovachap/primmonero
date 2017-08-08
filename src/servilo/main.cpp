@@ -2038,16 +2038,6 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     if (!CheckProofOfWork(pblock->GetHeaderHash(), pblock->nBits, pblock->bnPrimeChainMultiplier, pblock->nPrimeChainType, pblock->nPrimeChainLength))
         return state.DoS(100, error("ProcessBlock() : proof of work failed"));
 
-    // Check for v0.2 protocol compatibility
-    if (GetBoolArg("-v2compatible", false) &&
-        !CheckPrimeProofOfWorkV02Compatibility(pblock->GetHeaderHash()))
-    {
-        if (!pfrom) // rpc submitted block, reject if not v0.2 compatible
-            return error("ProcessBlock() : Submitted block incompatible with v0.2 protocol, block=%s", pblock->GetHash().ToString().c_str());
-        else // print warning message to debug log if not v0.2 compatible
-            printf("ProcessBlock() : WARNING : Block incompatible with v0.2 protocol, block=%s\n", pblock->GetHash().ToString().c_str());
-    }
-
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (pblock->hashPrevBlock != 0 && !mapBlockIndex.count(pblock->hashPrevBlock))
     {
@@ -2480,10 +2470,6 @@ bool LoadBlockIndex()
         nTargetInitialLength = 5; // primecoin: initial prime chain target
         nTargetMinLength = 2;     // primecoin: minimum prime chain target
     }
-
-    // Primecoin: Generate prime table when starting up
-    GeneratePrimeTable();
-    InitPrimeMiner();
 
     //
     // Load block index from databases
