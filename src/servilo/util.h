@@ -42,37 +42,17 @@ static const int64 CENT = 1000000;
 #define UEND(a)             ((unsigned char*)&((&(a))[1]))
 #define ARRAYLEN(array)     (sizeof(array)/sizeof((array)[0]))
 
-#ifndef PRI64d
-#if defined(_MSC_VER) || defined(__MSVCRT__)
-#define PRI64d  "I64d"
-#define PRI64u  "I64u"
-#define PRI64x  "I64x"
-#else
 #define PRI64d  "lld"
 #define PRI64u  "llu"
 #define PRI64x  "llx"
-#endif
-#endif
 
 /* Format characters for (s)size_t and ptrdiff_t */
-#if defined(_MSC_VER) || defined(__MSVCRT__)
-  /* (s)size_t and ptrdiff_t have the same size specifier in MSVC:
-     http://msdn.microsoft.com/en-us/library/tcxf1dw6%28v=vs.100%29.aspx
-   */
-  #define PRIszx    "Ix"
-  #define PRIszu    "Iu"
-  #define PRIszd    "Id"
-  #define PRIpdx    "Ix"
-  #define PRIpdu    "Iu"
-  #define PRIpdd    "Id"
-#else /* C99 standard */
-  #define PRIszx    "zx"
-  #define PRIszu    "zu"
-  #define PRIszd    "zd"
-  #define PRIpdx    "tx"
-  #define PRIpdu    "tu"
-  #define PRIpdd    "td"
-#endif
+#define PRIszx    "zx"
+#define PRIszu    "zu"
+#define PRIszd    "zd"
+#define PRIpdx    "tx"
+#define PRIpdu    "tu"
+#define PRIpdd    "td"
 
 // This is needed because the foreach macro can't get over the comma in pair<t1, t2>
 #define PAIRTYPE(t1, t2)    std::pair<t1, t2>
@@ -108,11 +88,7 @@ inline void MilliSleep(int64 n)
  * X is the number of the "format string" parameter, and Y is the number of the first variadic parameter.
  * Parameters count from 1.
  */
-#ifdef __GNUC__
 #define ATTR_WARN_PRINTF(X,Y) __attribute__((format(printf,X,Y)))
-#else
-#define ATTR_WARN_PRINTF(X,Y)
-#endif
 
 extern std::map<std::string, std::string> mapArgs;
 extern std::map<std::string, std::vector<std::string> > mapMultiArgs;
@@ -221,20 +197,12 @@ inline std::string itostr(int n)
 
 inline int64 atoi64(const char* psz)
 {
-#ifdef _MSC_VER
-    return _atoi64(psz);
-#else
     return strtoll(psz, NULL, 10);
-#endif
 }
 
 inline int64 atoi64(const std::string& str)
 {
-#ifdef _MSC_VER
-    return _atoi64(str.c_str());
-#else
     return strtoll(str.c_str(), NULL, 10);
-#endif
 }
 
 inline int atoi(const std::string& str)
@@ -481,13 +449,7 @@ bool NewThread(void(*pfn)(void*), void* parg);
 
 inline void SetThreadPriority(int nPriority)
 {
-    // It's unclear if it's even possible to change thread priorities on Linux,
-    // but we really and truly need it for the generation threads.
-#ifdef PRIO_THREAD
-    setpriority(PRIO_THREAD, 0, nPriority);
-#else
     setpriority(PRIO_PROCESS, 0, nPriority);
-#endif
 }
 
 inline void ExitThread(size_t nExitCode)

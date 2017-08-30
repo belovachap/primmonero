@@ -22,12 +22,10 @@ read_block(const std::string& filename, CBlock& block)
 {
     namespace fs = boost::filesystem;
     fs::path testFile = fs::current_path() / "test" / "data" / filename;
-#ifdef TEST_DATA_DIR
     if (!fs::exists(testFile))
     {
         testFile = fs::path(BOOST_PP_STRINGIZE(TEST_DATA_DIR)) / filename;
     }
-#endif
     FILE* fp = fopen(testFile.string().c_str(), "rb");
     if (!fp) return false;
 

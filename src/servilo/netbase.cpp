@@ -309,10 +309,6 @@ bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRe
     SOCKET hSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
     if (hSocket == INVALID_SOCKET)
         return false;
-#ifdef SO_NOSIGPIPE
-    int set = 1;
-    setsockopt(hSocket, SOL_SOCKET, SO_NOSIGPIPE, (void*)&set, sizeof(int));
-#endif
 
     int fFlags = fcntl(hSocket, F_GETFL, 0);
     if (fcntl(hSocket, F_SETFL, fFlags | O_NONBLOCK) == -1)
