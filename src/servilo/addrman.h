@@ -116,8 +116,7 @@ public:
 //        tried ones) is evicted from it, back to the "new" buckets.
 //    * Bucket selection is based on cryptographic hashing, using a randomly-generated 256-bit key, which should not
 //      be observable by adversaries.
-//    * Several indexes are kept for high performance. Defining DEBUG_ADDRMAN will introduce frequent (and expensive)
-//      consistency checks for the entire data structure.
+//    * Several indexes are kept for high performance.
 
 // total number of buckets for tried addresses
 #define ADDRMAN_TRIED_BUCKET_COUNT 64
@@ -231,11 +230,6 @@ protected:
     // Select an address to connect to.
     // nUnkBias determines how much to favor new addresses over tried ones (min=0, max=100)
     CAddress Select_(int nUnkBias);
-
-#ifdef DEBUG_ADDRMAN
-    // Perform consistency check. Returns an error code or zero.
-    int Check_();
-#endif
 
     // Select several addresses at once.
     void GetAddr_(std::vector<CAddress> &vAddr);
@@ -395,28 +389,13 @@ public:
         return vRandom.size();
     }
 
-    // Consistency check
-    void Check()
-    {
-#ifdef DEBUG_ADDRMAN
-        {
-            LOCK(cs);
-            int err;
-            if ((err=Check_()))
-                printf("ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
-        }
-#endif
-    }
-
     // Add a single address.
     bool Add(const CAddress &addr, const CNetAddr& source, int64 nTimePenalty = 0)
     {
         bool fRet = false;
         {
             LOCK(cs);
-            Check();
             fRet |= Add_(addr, source, nTimePenalty);
-            Check();
         }
         if (fRet)
             printf("Added %s from %s: %i tried, %i new\n", addr.ToStringIPPort().c_str(), source.ToString().c_str(), nTried, nNew);
@@ -429,10 +408,8 @@ public:
         int nAdd = 0;
         {
             LOCK(cs);
-            Check();
             for (std::vector<CAddress>::const_iterator it = vAddr.begin(); it != vAddr.end(); it++)
                 nAdd += Add_(*it, source, nTimePenalty) ? 1 : 0;
-            Check();
         }
         if (nAdd)
             printf("Added %i addresses from %s: %i tried, %i new\n", nAdd, source.ToString().c_str(), nTried, nNew);
@@ -444,9 +421,7 @@ public:
     {
         {
             LOCK(cs);
-            Check();
             Good_(addr, nTime);
-            Check();
         }
     }
 
@@ -455,9 +430,7 @@ public:
     {
         {
             LOCK(cs);
-            Check();
             Attempt_(addr, nTime);
-            Check();
         }
     }
 
@@ -468,9 +441,7 @@ public:
         CAddress addrRet;
         {
             LOCK(cs);
-            Check();
             addrRet = Select_(nUnkBias);
-            Check();
         }
         return addrRet;
     }
@@ -478,13 +449,11 @@ public:
     // Return a bunch of addresses, selected at random.
     std::vector<CAddress> GetAddr()
     {
-        Check();
         std::vector<CAddress> vAddr;
         {
             LOCK(cs);
             GetAddr_(vAddr);
         }
-        Check();
         return vAddr;
     }
 
@@ -493,9 +462,7 @@ public:
     {
         {
             LOCK(cs);
-            Check();
             Connected_(addr, nTime);
-            Check();
         }
     }
 };

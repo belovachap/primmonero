@@ -1,9 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_SYNC_H
-#define BITCOIN_SYNC_H
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
+#ifndef __SYNC_H__
+#define __SYNC_H__
 
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
@@ -40,17 +41,8 @@ typedef AnnotatedMixin<boost::recursive_mutex> CCriticalSection;
 /** Wrapped boost mutex: supports waiting but not recursive locking */
 typedef AnnotatedMixin<boost::mutex> CWaitableCriticalSection;
 
-#ifdef DEBUG_LOCKORDER
-void EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false);
-void LeaveCritical();
-#else
 void static inline EnterCritical(const char* pszName, const char* pszFile, int nLine, void* cs, bool fTry = false) {}
 void static inline LeaveCritical() {}
-#endif
-
-#ifdef DEBUG_LOCKCONTENTION
-void PrintLockContention(const char* pszName, const char* pszFile, int nLine);
-#endif
 
 /** Wrapper around boost::unique_lock<Mutex> */
 template<typename Mutex>
@@ -62,15 +54,7 @@ private:
     void Enter(const char* pszName, const char* pszFile, int nLine)
     {
         EnterCritical(pszName, pszFile, nLine, (void*)(lock.mutex()));
-#ifdef DEBUG_LOCKCONTENTION
-        if (!lock.try_lock())
-        {
-            PrintLockContention(pszName, pszFile, nLine);
-#endif
         lock.lock();
-#ifdef DEBUG_LOCKCONTENTION
-        }
-#endif
     }
 
     bool TryEnter(const char* pszName, const char* pszFile, int nLine)
@@ -209,5 +193,5 @@ public:
         return fHaveGrant;
     }
 };
-#endif
 
+#endif // __SYNC_H__

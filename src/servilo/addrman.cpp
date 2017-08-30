@@ -1,6 +1,6 @@
 // Copyright (c) 2012 Pieter Wuille
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
 #include "addrman.h"
 #include "hash.h"
@@ -430,66 +430,6 @@ CAddress CAddrMan::Select_(int nUnkBias)
         }
     }
 }
-
-#ifdef DEBUG_ADDRMAN
-int CAddrMan::Check_()
-{
-    std::set<int> setTried;
-    std::map<int, int> mapNew;
-
-    if (vRandom.size() != nTried + nNew) return -7;
-
-    for (std::map<int, CAddrInfo>::iterator it = mapInfo.begin(); it != mapInfo.end(); it++)
-    {
-        int n = (*it).first;
-        CAddrInfo &info = (*it).second;
-        if (info.fInTried)
-        {
-
-            if (!info.nLastSuccess) return -1;
-            if (info.nRefCount) return -2;
-            setTried.insert(n);
-        } else {
-            if (info.nRefCount < 0 || info.nRefCount > ADDRMAN_NEW_BUCKETS_PER_ADDRESS) return -3;
-            if (!info.nRefCount) return -4;
-            mapNew[n] = info.nRefCount;
-        }
-        if (mapAddr[info] != n) return -5;
-        if (info.nRandomPos<0 || info.nRandomPos>=vRandom.size() || vRandom[info.nRandomPos] != n) return -14;
-        if (info.nLastTry < 0) return -6;
-        if (info.nLastSuccess < 0) return -8;
-    }
-
-    if (setTried.size() != nTried) return -9;
-    if (mapNew.size() != nNew) return -10;
-
-    for (int n=0; n<vvTried.size(); n++)
-    {
-        std::vector<int> &vTried = vvTried[n];
-        for (std::vector<int>::iterator it = vTried.begin(); it != vTried.end(); it++)
-        {
-            if (!setTried.count(*it)) return -11;
-            setTried.erase(*it);
-        }
-    }
-
-    for (int n=0; n<vvNew.size(); n++)
-    {
-        std::set<int> &vNew = vvNew[n];
-        for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); it++)
-        {
-            if (!mapNew.count(*it)) return -12;
-            if (--mapNew[*it] == 0)
-                mapNew.erase(*it);
-        }
-    }
-
-    if (setTried.size()) return -13;
-    if (mapNew.size()) return -15;
-
-    return 0;
-}
-#endif
 
 void CAddrMan::GetAddr_(std::vector<CAddress> &vAddr)
 {

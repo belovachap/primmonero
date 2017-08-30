@@ -3,17 +3,15 @@
 // Kopirajto 2017 Chapman Shoop
 // Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
-#ifndef BITCOIN_NET_H
-#define BITCOIN_NET_H
+#ifndef __NET_H__
+#define __NET_H__
 
 #include <deque>
 #include <boost/array.hpp>
 #include <boost/foreach.hpp>
 #include <openssl/rand.h>
 
-#ifndef WIN32
 #include <arpa/inet.h>
-#endif
 
 #include "mruset.h"
 #include "limitedmap.h"
@@ -640,4 +638,4 @@ class CTransaction;
 void RelayTransaction(const CTransaction& tx, const uint256& hash);
 void RelayTransaction(const CTransaction& tx, const uint256& hash, const CDataStream& ss);
 
-#endif
+#endif // __NET_H__
