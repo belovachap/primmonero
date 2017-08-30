@@ -112,11 +112,6 @@ OBJS=\
     obj/txdb.o \
     obj/prime.o
 
-all: primmonera-servilo
-
-testo: testa-primmonera-servilo FORCE
-	./testa-primmonera-servilo
-
 # auto-generated dependencies:
 -include obj/*.P
 -include obj-test/*.P
@@ -128,8 +123,6 @@ obj/%.o: %.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-primmonera-servilo: $(OBJS:obj/%=obj/%)
-	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
 
@@ -140,15 +133,21 @@ obj-test/%.o: test/%.cpp
 	      -e '/^$$/ d' -e 's/$$/ :/' < $(@:%.o=%.d) >> $(@:%.o=%.P); \
 	  rm -f $(@:%.o=%.d)
 
-testa-primmonera-servilo: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
+servilo: $(OBJS:obj/%=obj/%)
+	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
+
+testa-servilo: $(TESTOBJS) $(filter-out obj/init.o,$(OBJS:obj/%=obj/%))
 	$(LINK) $(xCXXFLAGS) -o $@ $(LIBPATHS) $^ $(TESTLIBS) $(xLDFLAGS) $(LIBS)
 
-clean:
-	-rm -f primmonera-servilo testa-primmonera-servilo
-	-rm -f obj/*.o
-	-rm -f obj-test/*.o
-	-rm -f obj/*.P
-	-rm -f obj-test/*.P
-	-rm -f obj/build.h
+# Docker
+.PHONY: docker-build
+docker-build:
+	docker build --build-arg J=4 . -t primmonero-servilo
 
-FORCE:
+.PHONY: docker-check
+docker-check: docker-build
+	docker run --rm primmonero-servilo cppcheck --enable=all ./
+
+.PHONY: docker-test
+docker-test: docker-build
+	docker run --rm primmonero-servilo ./testa-servilo

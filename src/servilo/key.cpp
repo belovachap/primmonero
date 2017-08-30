@@ -142,18 +142,6 @@ CSecret CKey::GetSecret(bool &fCompressed) const
     return vchRet;
 }
 
-CPrivKey CKey::GetPrivKey() const
-{
-    int nSize = i2d_ECPrivateKey(pkey, NULL);
-    if (!nSize)
-        throw key_error("CKey::GetPrivKey() : i2d_ECPrivateKey failed");
-    CPrivKey vchPrivKey(nSize, 0);
-    unsigned char* pbegin = &vchPrivKey[0];
-    if (i2d_ECPrivateKey(pkey, &pbegin) != nSize)
-        throw key_error("CKey::GetPrivKey() : i2d_ECPrivateKey returned unexpected size");
-    return vchPrivKey;
-}
-
 bool CKey::SetPubKey(const CPubKey& vchPubKey)
 {
     const unsigned char* pbegin = &vchPubKey.vchPubKey[0];

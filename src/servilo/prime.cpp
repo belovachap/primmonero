@@ -200,12 +200,6 @@ static bool EulerLagrangeLifchitzPrimalityTest(const CBigNum& n, bool fSophieGer
     return false;
 }
 
-// prime chain type and length value
-std::string GetPrimeChainName(unsigned int nChainType, unsigned int nChainLength)
-{
-    return strprintf("%s%s", (nChainType==PRIME_CHAIN_CUNNINGHAM1)? "1CC" : ((nChainType==PRIME_CHAIN_CUNNINGHAM2)? "2CC" : "TWN"), TargetToString(nChainLength).c_str());
-}
-
 // Test Probable Cunningham Chain for: n
 // fSophieGermain:
 //   true - Test for Cunningham Chain of first kind (n, 2n+1, 4n+3, ...)

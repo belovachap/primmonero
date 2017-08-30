@@ -90,7 +90,5 @@ bool CheckPrimeProofOfWork(uint256 hashBlockHeader, unsigned int nBits, const CB
 
 // Estimate work transition target to longer prime chain
 unsigned int EstimateWorkTransition(unsigned int nPrevWorkTransition, unsigned int nBits, unsigned int nChainLength);
-// prime chain type and length value
-std::string GetPrimeChainName(unsigned int nChainType, unsigned int nChainLength);
 
 #endif // __PRIME_H__

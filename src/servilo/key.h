@@ -126,7 +126,6 @@ public:
     void MakeNewKey(bool fCompressed);
     bool SetSecret(const CSecret& vchSecret, bool fCompressed = false);
     CSecret GetSecret(bool &fCompressed) const;
-    CPrivKey GetPrivKey() const;
     bool SetPubKey(const CPubKey& vchPubKey);
     CPubKey GetPubKey() const;
 

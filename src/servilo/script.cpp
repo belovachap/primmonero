@@ -69,21 +69,6 @@ static inline void popstack(vector<valtype>& stack)
     stack.pop_back();
 }
 
-
-const char* GetTxnOutputType(txnouttype t)
-{
-    switch (t)
-    {
-    case TX_NONSTANDARD: return "nonstandard";
-    case TX_PUBKEY: return "pubkey";
-    case TX_PUBKEYHASH: return "pubkeyhash";
-    case TX_SCRIPTHASH: return "scripthash";
-    case TX_MULTISIG: return "multisig";
-    }
-    return NULL;
-}
-
-
 const char* GetOpName(opcodetype opcode)
 {
     switch (opcode)

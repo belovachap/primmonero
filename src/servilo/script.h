@@ -61,8 +61,6 @@ public:
  */
 typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
 
-const char* GetTxnOutputType(txnouttype t);
-
 /** Script opcodes */
 enum opcodetype
 {
