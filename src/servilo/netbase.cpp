@@ -111,11 +111,6 @@ bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nM
     return LookupIntern(strHost.c_str(), vIP, nMaxSolutions, fAllowLookup);
 }
 
-bool LookupHostNumeric(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions)
-{
-    return LookupHost(pszName, vIP, nMaxSolutions, false);
-}
-
 bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault, bool fAllowLookup, unsigned int nMaxSolutions)
 {
     if (pszName[0] == 0)
@@ -645,12 +640,6 @@ bool CNetAddr::IsLocal() const
    return false;
 }
 
-bool CNetAddr::IsMulticast() const
-{
-    return    (IsIPv4() && (GetByte(3) & 0xF0) == 0xE0)
-           || (GetByte(15) == 0xFF);
-}
-
 bool CNetAddr::IsValid() const
 {
     // Cleanup 3-byte shifted addresses caused by garbage in size field
@@ -1075,9 +1064,4 @@ std::string CService::ToString() const
 void CService::print() const
 {
     printf("CService(%s)\n", ToString().c_str());
-}
-
-void CService::SetPort(unsigned short portIn)
-{
-    port = portIn;
 }

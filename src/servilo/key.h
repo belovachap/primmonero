@@ -89,10 +89,6 @@ public:
         return vchPubKey.size() == 33 || vchPubKey.size() == 65;
     }
 
-    bool IsCompressed() const {
-        return vchPubKey.size() == 33;
-    }
-
     std::vector<unsigned char> Raw() const {
         return vchPubKey;
     }
@@ -126,10 +122,8 @@ public:
     ~CKey();
 
     bool IsNull() const;
-    bool IsCompressed() const;
 
     void MakeNewKey(bool fCompressed);
-    bool SetPrivKey(const CPrivKey& vchPrivKey);
     bool SetSecret(const CSecret& vchSecret, bool fCompressed = false);
     CSecret GetSecret(bool &fCompressed) const;
     CPrivKey GetPrivKey() const;
@@ -138,22 +132,7 @@ public:
 
     bool Sign(uint256 hash, std::vector<unsigned char>& vchSig);
 
-    // create a compact signature (65 bytes), which allows reconstructing the used public key
-    // The format is one header byte, followed by two times 32 bytes for the serialized r and s values.
-    // The header byte: 0x1B = first key with even y, 0x1C = first key with odd y,
-    //                  0x1D = second key with even y, 0x1E = second key with odd y
-    bool SignCompact(uint256 hash, std::vector<unsigned char>& vchSig);
-
-    // reconstruct public key from a compact signature
-    // This is only slightly more CPU intensive than just verifying it.
-    // If this function succeeds, the recovered public key is guaranteed to be valid
-    // (the signature is a valid signature of the given data for that key)
-    bool SetCompactSignature(uint256 hash, const std::vector<unsigned char>& vchSig);
-
     bool Verify(uint256 hash, const std::vector<unsigned char>& vchSig);
-
-    // Verify a compact signature
-    bool VerifyCompact(uint256 hash, const std::vector<unsigned char>& vchSig);
 
     bool IsValid();
 };

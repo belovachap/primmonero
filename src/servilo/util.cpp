@@ -278,27 +278,6 @@ bool error(const char *format, ...)
     return false;
 }
 
-
-void ParseString(const string& str, char c, vector<string>& v)
-{
-    if (str.empty())
-        return;
-    string::size_type i1 = 0;
-    string::size_type i2;
-    loop
-    {
-        i2 = str.find(c, i1);
-        if (i2 == str.npos)
-        {
-            v.push_back(str.substr(i1));
-            return;
-        }
-        v.push_back(str.substr(i1, i2-i1));
-        i1 = i2+1;
-    }
-}
-
-
 string FormatMoney(int64 n, bool fPlus)
 {
     // Note: not using straight sprintf here because we do NOT want
@@ -721,9 +700,9 @@ string EncodeBase32(const unsigned char* pch, size_t len)
         }
     }
 
-    static const int nPadding[5] = {0, 6, 4, 3, 1};
     if (mode)
     {
+        static const int nPadding[5] = {0, 6, 4, 3, 1};
         strRet += pbase32[left];
         for (int n=0; n<nPadding[mode]; n++)
              strRet += '=';
@@ -906,12 +885,6 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
     else
         return strprintf(
             "UNKNOWN EXCEPTION       \n%s in %s       \n", pszModule, pszThread);
-}
-
-void LogException(std::exception* pex, const char* pszThread)
-{
-    std::string message = FormatException(pex, pszThread);
-    printf("\n%s", message.c_str());
 }
 
 void PrintException(std::exception* pex, const char* pszThread)
@@ -1219,13 +1192,6 @@ void seed_insecure_rand(bool fDeterministic)
 
 boost::filesystem::path GetTempPath() {
     return boost::filesystem::temp_directory_path();
-}
-
-void runCommand(std::string strCommand)
-{
-    int nErr = ::system(strCommand.c_str());
-    if (nErr)
-        printf("runCommand error: system(%s) returned %d\n", strCommand.c_str(), nErr);
 }
 
 void RenameThread(const char* name)

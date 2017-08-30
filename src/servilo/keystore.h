@@ -116,9 +116,6 @@ private:
 protected:
     bool SetCrypted();
 
-    // will encrypt previously unencrypted keys
-    bool EncryptKeys(CKeyingMaterial& vMasterKeyIn);
-
     bool Unlock(const CKeyingMaterial& vMasterKeyIn);
 
 public:

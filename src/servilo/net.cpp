@@ -540,11 +540,6 @@ void CNode::PushVersion()
 std::map<CNetAddr, int64> CNode::setBanned;
 CCriticalSection CNode::cs_setBanned;
 
-void CNode::ClearBanned()
-{
-    setBanned.clear();
-}
-
 bool CNode::IsBanned(CNetAddr ip)
 {
     bool fResult = false;
@@ -585,26 +580,6 @@ bool CNode::Misbehaving(int howmuch)
         printf("Misbehaving: %s (%d -> %d)\n", addr.ToString().c_str(), nMisbehavior-howmuch, nMisbehavior);
     return false;
 }
-
-#undef X
-#define X(name) stats.name = name
-void CNode::copyStats(CNodeStats &stats)
-{
-    X(nServices);
-    X(nLastSend);
-    X(nLastRecv);
-    X(nTimeConnected);
-    X(addrName);
-    X(nVersion);
-    X(cleanSubVer);
-    X(fInbound);
-    X(nStartingHeight);
-    X(nMisbehavior);
-    X(nSendBytes);
-    X(nRecvBytes);
-    stats.fSyncNode = (this == pnodeSync);
-}
-#undef X
 
 // requires LOCK(cs_vRecvMsg)
 bool CNode::ReceiveMsgBytes(const char *pch, unsigned int nBytes)

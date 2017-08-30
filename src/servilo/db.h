@@ -64,15 +64,12 @@ public:
      * for huge databases.
      */
     typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char> > KeyValPair;
-    bool Salvage(std::string strFile, bool fAggressive, std::vector<KeyValPair>& vResult);
 
     bool Open(const boost::filesystem::path &path);
     void Close();
     void Flush(bool fShutdown);
-    void CheckpointLSN(std::string strFile);
 
     void CloseDb(const std::string& strFile);
-    bool RemoveDb(const std::string& strFile);
 
     DbTxn *TxnBegin(int flags=DB_TXN_WRITE_NOSYNC)
     {
@@ -302,8 +299,6 @@ public:
     {
         return Write(std::string("version"), nVersion);
     }
-
-    bool static Rewrite(const std::string& strFile, const char* pszSkip = NULL);
 };
 
 

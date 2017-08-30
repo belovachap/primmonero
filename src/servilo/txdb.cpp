@@ -59,7 +59,7 @@ bool CCoinsViewDB::BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockI
     printf("Committing %u changed transactions to coin database...\n", (unsigned int)mapCoins.size());
 
     CLevelDBBatch batch;
-    for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
+    for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); ++it)
         BatchWriteCoins(batch, it->first, it->second);
     if (pindex)
         BatchWriteHashBestChain(batch, pindex->GetBlockHash());
@@ -164,13 +164,9 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
     return true;
 }
 
-bool CBlockTreeDB::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
-    return Read(make_pair('t', txid), pos);
-}
-
 bool CBlockTreeDB::WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos> >&vect) {
     CLevelDBBatch batch;
-    for (std::vector<std::pair<uint256,CDiskTxPos> >::const_iterator it=vect.begin(); it!=vect.end(); it++)
+    for (std::vector<std::pair<uint256,CDiskTxPos> >::const_iterator it=vect.begin(); it!=vect.end(); ++it)
         batch.Write(make_pair('t', it->first), it->second);
     return WriteBatch(batch);
 }

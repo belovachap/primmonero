@@ -56,7 +56,6 @@ class CNetAddr
         bool IsLocal() const;
         bool IsRoutable() const;
         bool IsValid() const;
-        bool IsMulticast() const;
         enum Network GetNetwork() const;
         std::string ToString() const;
         std::string ToStringIP() const;
@@ -96,7 +95,6 @@ class CService : public CNetAddr
         explicit CService(const std::string& strIpPort, int portDefault, bool fAllowLookup = false);
         explicit CService(const std::string& strIpPort, bool fAllowLookup = false);
         void Init();
-        void SetPort(unsigned short portIn);
         unsigned short GetPort() const;
         bool GetSockAddr(struct sockaddr* paddr, socklen_t *addrlen) const;
         bool SetSockAddr(const struct sockaddr* paddr);
@@ -133,7 +131,6 @@ bool IsProxy(const CNetAddr &addr);
 bool SetNameProxy(CService addrProxy, int nSocksVersion = 5);
 bool HaveNameProxy();
 bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions = 0, bool fAllowLookup = true);
-bool LookupHostNumeric(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nMaxSolutions = 0);
 bool Lookup(const char *pszName, CService& addr, int portDefault = 0, bool fAllowLookup = true);
 bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault = 0, bool fAllowLookup = true, unsigned int nMaxSolutions = 0);
 bool LookupNumeric(const char *pszName, CService& addr, int portDefault = 0);

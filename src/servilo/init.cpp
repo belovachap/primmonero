@@ -67,10 +67,6 @@ void StartShutdown()
 {
     fRequestShutdown = true;
 }
-bool ShutdownRequested()
-{
-    return fRequestShutdown;
-}
 
 static CCoinsViewDB *pcoinsdbview;
 
@@ -345,11 +341,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (mapArgs.count("-externalip")) {
         // if an explicit public IP is specified, do not try to find others
         SoftSetBoolArg("-discover", false);
-    }
-
-    if (GetBoolArg("-salvagewallet")) {
-        // Rewrite just private keys: rescan to find transactions
-        SoftSetBoolArg("-rescan", true);
     }
 
     // Make sure enough file descriptors are available

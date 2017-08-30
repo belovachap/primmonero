@@ -193,29 +193,3 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) co
     }
     return false;
 }
-
-bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
-{
-    {
-        LOCK(cs_KeyStore);
-        if (!mapCryptedKeys.empty() || IsCrypted())
-            return false;
-
-        fUseCrypto = true;
-        BOOST_FOREACH(KeyMap::value_type& mKey, mapKeys)
-        {
-            CKey key;
-            if (!key.SetSecret(mKey.second.first, mKey.second.second))
-                return false;
-            const CPubKey vchPubKey = key.GetPubKey();
-            std::vector<unsigned char> vchCryptedSecret;
-            bool fCompressed;
-            if (!EncryptSecret(vMasterKeyIn, key.GetSecret(fCompressed), vchPubKey.GetHash(), vchCryptedSecret))
-                return false;
-            if (!AddCryptedKey(vchPubKey, vchCryptedSecret))
-                return false;
-        }
-        mapKeys.clear();
-    }
-    return true;
-}
