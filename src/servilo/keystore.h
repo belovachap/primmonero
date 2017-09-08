@@ -1,9 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_KEYSTORE_H
-#define BITCOIN_KEYSTORE_H
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
+#ifndef __KEYSTORE_H__
+#define __KEYSTORE_H__
 
 #include "crypter.h"
 #include "sync.h"
@@ -74,7 +75,7 @@ public:
             while (mi != mapKeys.end())
             {
                 setAddress.insert((*mi).first);
-                mi++;
+                ++mi;
             }
         }
     }
@@ -168,7 +169,7 @@ public:
         while (mi != mapCryptedKeys.end())
         {
             setAddress.insert((*mi).first);
-            mi++;
+            ++mi;
         }
     }
 
@@ -178,4 +179,4 @@ public:
     boost::signals2::signal<void (CCryptoKeyStore* wallet)> NotifyStatusChanged;
 };
 
-#endif
+#endif // __KEYSTORE_H__

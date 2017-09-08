@@ -153,7 +153,7 @@ int CAddrMan::ShrinkNew(int nUBucket)
     std::set<int> &vNew = vvNew[nUBucket];
 
     // first look for deletable items
-    for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); it++)
+    for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); ++it)
     {
         assert(mapInfo.count(*it));
         CAddrInfo &info = mapInfo[*it];
@@ -176,7 +176,7 @@ int CAddrMan::ShrinkNew(int nUBucket)
     int n[4] = {GetRandInt(vNew.size()), GetRandInt(vNew.size()), GetRandInt(vNew.size()), GetRandInt(vNew.size())};
     int nI = 0;
     int nOldest = -1;
-    for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); it++)
+    for (std::set<int>::iterator it = vNew.begin(); it != vNew.end(); ++it)
     {
         if (nI == n[0] || nI == n[1] || nI == n[2] || nI == n[3])
         {
@@ -206,7 +206,7 @@ void CAddrMan::MakeTried(CAddrInfo& info, int nId, int nOrigin)
     assert(vvNew[nOrigin].count(nId) == 1);
 
     // remove the entry from all new buckets
-    for (std::vector<std::set<int> >::iterator it = vvNew.begin(); it != vvNew.end(); it++)
+    for (std::vector<std::set<int> >::iterator it = vvNew.begin(); it != vvNew.end(); ++it)
     {
         if ((*it).erase(nId))
             info.nRefCount--;
@@ -420,8 +420,9 @@ CAddress CAddrMan::Select_(int nUnkBias)
             if (vNew.size() == 0) continue;
             int nPos = GetRandInt(vNew.size());
             std::set<int>::iterator it = vNew.begin();
-            while (nPos--)
-                it++;
+            while (nPos--) {
+                ++it;
+            }
             assert(mapInfo.count(*it) == 1);
             CAddrInfo &info = mapInfo[*it];
             if (GetRandInt(1<<30) < fChanceFactor*info.GetChance()*(1<<30))

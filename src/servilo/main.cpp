@@ -145,7 +145,7 @@ bool CCoinsViewCache::SetBestBlock(CBlockIndex *pindex) {
 }
 
 bool CCoinsViewCache::BatchWrite(const std::map<uint256, CCoins> &mapCoins, CBlockIndex *pindex) {
-    for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); it++)
+    for (std::map<uint256, CCoins>::const_iterator it = mapCoins.begin(); it != mapCoins.end(); ++it)
         cacheCoins[it->first] = it->second;
     pindexTip = pindex;
     return true;
@@ -810,7 +810,7 @@ unsigned int static GetNextWorkRequired(const CBlockIndex* pindexLast, const CBl
         return false;
 
     if (fDebug && GetBoolArg("-printtarget"))
-        printf("GetNextWorkRequired() : lastindex=%u prev=0x%08x new=0x%08x\n",
+        printf("GetNextWorkRequired() : lastindex=%d prev=0x%08x new=0x%08x\n",
             pindexLast->nHeight, pindexPrev->nBits, nBits);
     return nBits;
 }
@@ -1591,7 +1591,7 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAdd
             if (CheckDiskSpace(nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos)) {
                 FILE *file = OpenBlockFile(pos);
                 if (file) {
-                    printf("Pre-allocating up to position 0x%x in blk%05u.dat\n", nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
+                    printf("Pre-allocating up to position 0x%x in blk%05d.dat\n", nNewChunks * BLOCKFILE_CHUNK_SIZE, pos.nFile);
                     AllocateFileRange(file, pos.nPos, nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos);
                     fclose(file);
                 }
@@ -1637,7 +1637,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
         if (CheckDiskSpace(nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos)) {
             FILE *file = OpenUndoFile(pos);
             if (file) {
-                printf("Pre-allocating up to position 0x%x in rev%05u.dat\n", nNewChunks * UNDOFILE_CHUNK_SIZE, pos.nFile);
+                printf("Pre-allocating up to position 0x%x in rev%05d.dat\n", nNewChunks * UNDOFILE_CHUNK_SIZE, pos.nFile);
                 AllocateFileRange(file, pos.nPos, nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos);
                 fclose(file);
             }
@@ -1903,17 +1903,8 @@ bool ProcessBlock(CValidationState &state, CNode* pfrom, CBlock* pblock, CDiskBl
     return true;
 }
 
-
-
-
-
-
-
-
-CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter& filter)
+CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter& filter) : header(block.GetBlockHeader())
 {
-    header = block.GetBlockHeader();
-
     std::vector<bool> vMatch;
     std::vector<uint256> vHashes;
 
@@ -2221,7 +2212,7 @@ bool VerifyDB() {
         if (nCheckLevel >= 1 && !block.CheckBlock(state))
             return false;
         // check level 2: verify undo validity
-        if (nCheckLevel >= 2 && pindex) {
+        if (nCheckLevel >= 2) {
             CBlockUndo undo;
             CDiskBlockPos pos = pindex->GetUndoPos();
             if (!pos.IsNull()) {
@@ -2496,7 +2487,7 @@ void static ProcessGetData(CNode* pfrom)
         const CInv &inv = *it;
         {
             boost::this_thread::interruption_point();
-            it++;
+            ++it;
 
             if (inv.type == MSG_BLOCK || inv.type == MSG_FILTERED_BLOCK)
             {
@@ -3140,7 +3131,7 @@ bool ProcessMessages(CNode* pfrom)
             break;
 
         // at this point, any failure means we can delete the current message
-        it++;
+        ++it;
 
         // Scan for message start
         if (memcmp(msg.hdr.pchMessageStart, pchMessageStart, sizeof(pchMessageStart)) != 0) {
@@ -3234,9 +3225,8 @@ bool SendMessages(CNode* pto, bool fSendTrickle)
         // Keep-alive ping. We send a nonce of zero because we don't use it anywhere
         // right now.
         if (pto->nLastSend && GetTime() - pto->nLastSend > 30 * 60 && pto->vSendMsg.empty()) {
-            uint64 nonce = 0;
             if (pto->nVersion > BIP0031_VERSION)
-                pto->PushMessage("ping", nonce);
+                pto->PushMessage("ping", 0);
             else
                 pto->PushMessage("ping");
         }
@@ -3489,13 +3479,13 @@ public:
     ~CMainCleanup() {
         // block headers
         std::map<uint256, CBlockIndex*>::iterator it1 = mapBlockIndex.begin();
-        for (; it1 != mapBlockIndex.end(); it1++)
+        for (; it1 != mapBlockIndex.end(); ++it1)
             delete (*it1).second;
         mapBlockIndex.clear();
 
         // orphan blocks
         std::map<uint256, CBlock*>::iterator it2 = mapOrphanBlocks.begin();
-        for (; it2 != mapOrphanBlocks.end(); it2++)
+        for (; it2 != mapOrphanBlocks.end(); ++it2)
             delete (*it2).second;
         mapOrphanBlocks.clear();
 

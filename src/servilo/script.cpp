@@ -288,19 +288,19 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
     CScript::const_iterator pc = script.begin();
     CScript::const_iterator pend = script.end();
     CScript::const_iterator pbegincodehash = script.begin();
-    opcodetype opcode;
     valtype vchPushValue;
     vector<bool> vfExec;
     vector<valtype> altstack;
     if (script.size() > 10000)
         return false;
-    int nOpCount = 0;
     bool fStrictEncodings = flags & SCRIPT_VERIFY_STRICTENC;
 
     try
     {
+        int nOpCount = 0;
         while (pc < pend)
         {
+            opcodetype opcode;
             bool fExec = !count(vfExec.begin(), vfExec.end(), false);
 
             //
@@ -941,26 +941,17 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, co
         return false;
     }
 
-
     if (!vfExec.empty())
         return false;
 
     return true;
 }
 
-
-
-
-
-
-
-
-
 uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType)
 {
     if (nIn >= txTo.vin.size())
     {
-        printf("ERROR: SignatureHash() : nIn=%d out of range\n", nIn);
+        printf("ERROR: SignatureHash() : nIn=%u out of range\n", nIn);
         return 1;
     }
     CTransaction txTmp(txTo);
@@ -991,7 +982,7 @@ uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int
         unsigned int nOut = nIn;
         if (nOut >= txTmp.vout.size())
         {
-            printf("ERROR: SignatureHash() : nOut=%d out of range\n", nOut);
+            printf("ERROR: SignatureHash() : nOut=%u out of range\n", nOut);
             return 1;
         }
         txTmp.vout.resize(nOut+1);

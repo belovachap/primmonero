@@ -1,8 +1,9 @@
 // Copyright (c) 2012 Pieter Wuille
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef _BITCOIN_ADDRMAN
-#define _BITCOIN_ADDRMAN 1
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
+#ifndef __ADDRMAN_H__
+#define __ADDRMAN_H__
 
 #include "netbase.h"
 #include "protocol.h"
@@ -408,7 +409,7 @@ public:
         int nAdd = 0;
         {
             LOCK(cs);
-            for (std::vector<CAddress>::const_iterator it = vAddr.begin(); it != vAddr.end(); it++)
+            for (std::vector<CAddress>::const_iterator it = vAddr.begin(); it != vAddr.end(); ++it)
                 nAdd += Add_(*it, source, nTimePenalty) ? 1 : 0;
         }
         if (nAdd)
@@ -467,4 +468,4 @@ public:
     }
 };
 
-#endif
+#endif // __ADDRMAN_H__

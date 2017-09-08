@@ -94,16 +94,14 @@ void CAddress::Init()
     nLastTry = 0;
 }
 
-CInv::CInv()
+CInv::CInv() : hash(0)
 {
     type = 0;
-    hash = 0;
 }
 
-CInv::CInv(int typeIn, const uint256& hashIn)
+CInv::CInv(int typeIn, const uint256& hashIn) : hash(hashIn)
 {
     type = typeIn;
-    hash = hashIn;
 }
 
 CInv::CInv(const std::string& strType, const uint256& hashIn)

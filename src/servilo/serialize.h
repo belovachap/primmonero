@@ -1,9 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef BITCOIN_SERIALIZE_H
-#define BITCOIN_SERIALIZE_H
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
+#ifndef __SERIALIZE_H__
+#define __SERIALIZE_H__
 
 #include <string>
 #include <vector>
@@ -1028,10 +1029,8 @@ public:
         unsigned int nReadPosNext = nReadPos + nSize;
         if (nReadPosNext >= vch.size())
         {
-            if (nReadPosNext > vch.size())
-            {
+            if (nReadPosNext > vch.size()) {
                 setstate(std::ios::failbit, "CDataStream::ignore() : end of data");
-                nSize = vch.size() - nReadPos;
             }
             nReadPos = 0;
             vch.clear();
@@ -1354,4 +1353,4 @@ public:
     }
 };
 
-#endif
+#endif // __SERIALIZE_H__
