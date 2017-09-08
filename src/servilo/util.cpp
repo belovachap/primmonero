@@ -15,6 +15,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 #include <boost/thread.hpp>
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
@@ -79,13 +80,6 @@ public:
 }
 instance_of_cinit;
 
-
-
-
-
-
-
-
 void RandAddSeed()
 {
     // Seed with CPU performance counter
@@ -132,140 +126,6 @@ uint256 GetRandHash()
     return hash;
 }
 
-
-
-
-
-
-
-//
-// OutputDebugStringF (aka printf -- there is a #define that we really
-// should get rid of one day) has been broken a couple of times now
-// by well-meaning people adding mutexes in the most straightforward way.
-// It breaks because it may be called by global destructors during shutdown.
-// Since the order of destruction of static/global objects is undefined,
-// defining a mutex as a global object doesn't work (the mutex gets
-// destroyed, and then some later destructor calls OutputDebugStringF,
-// maybe indirectly, and you get a core dump at shutdown trying to lock
-// the mutex).
-
-static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
-// We use boost::call_once() to make sure these are initialized in
-// in a thread-safe manner the first time it is called:
-static FILE* fileout = NULL;
-static boost::mutex* mutexDebugLog = NULL;
-
-static void DebugPrintInit()
-{
-    assert(fileout == NULL);
-    assert(mutexDebugLog == NULL);
-
-    boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
-    fileout = fopen(pathDebug.string().c_str(), "a");
-    if (fileout) setbuf(fileout, NULL); // unbuffered
-
-    mutexDebugLog = new boost::mutex();
-}
-
-int OutputDebugStringF(const char* pszFormat, ...)
-{
-    int ret = 0; // Returns total number of characters written
-    if (fPrintToConsole) {
-        // print to console
-        va_list arg_ptr;
-        va_start(arg_ptr, pszFormat);
-        ret += vprintf(pszFormat, arg_ptr);
-        va_end(arg_ptr);
-    }
-    else {
-        static bool fStartedNewLine = true;
-        boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-
-        if (fileout == NULL)
-            return ret;
-
-        boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
-
-        // reopen the log file, if requested
-        if (fReopenDebugLog) {
-            fReopenDebugLog = false;
-            boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
-            if (freopen(pathDebug.string().c_str(),"a",fileout) != NULL)
-                setbuf(fileout, NULL); // unbuffered
-        }
-
-        // Debug print useful for profiling
-        if (fLogTimestamps && fStartedNewLine)
-            ret += fprintf(fileout, "%s ", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
-        if (pszFormat[strlen(pszFormat) - 1] == '\n')
-            fStartedNewLine = true;
-        else
-            fStartedNewLine = false;
-
-        va_list arg_ptr;
-        va_start(arg_ptr, pszFormat);
-        ret += vfprintf(fileout, pszFormat, arg_ptr);
-        va_end(arg_ptr);
-    }
-
-    return ret;
-}
-
-string vstrprintf(const char *format, va_list ap)
-{
-    char buffer[50000];
-    char* p = buffer;
-    int limit = sizeof(buffer);
-    int ret;
-    loop
-    {
-        va_list arg_ptr;
-        va_copy(arg_ptr, ap);
-        ret = vsnprintf(p, limit, format, arg_ptr);
-        va_end(arg_ptr);
-        if (ret >= 0 && ret < limit)
-            break;
-        if (p != buffer)
-            delete[] p;
-        limit *= 2;
-        p = new char[limit];
-        if (p == NULL)
-            throw std::bad_alloc();
-    }
-    string str(p, p+ret);
-    if (p != buffer)
-        delete[] p;
-    return str;
-}
-
-string real_strprintf(const char *format, int dummy, ...)
-{
-    va_list arg_ptr;
-    va_start(arg_ptr, dummy);
-    string str = vstrprintf(format, arg_ptr);
-    va_end(arg_ptr);
-    return str;
-}
-
-string real_strprintf(const std::string &format, int dummy, ...)
-{
-    va_list arg_ptr;
-    va_start(arg_ptr, dummy);
-    string str = vstrprintf(format.c_str(), arg_ptr);
-    va_end(arg_ptr);
-    return str;
-}
-
-bool error(const char *format, ...)
-{
-    va_list arg_ptr;
-    va_start(arg_ptr, format);
-    std::string str = vstrprintf(format, arg_ptr);
-    va_end(arg_ptr);
-    printf("ERROR: %s\n", str.c_str());
-    return false;
-}
-
 string FormatMoney(int64 n, bool fPlus)
 {
     // Note: not using straight sprintf here because we do NOT want
@@ -273,20 +133,20 @@ string FormatMoney(int64 n, bool fPlus)
     int64 n_abs = (n > 0 ? n : -n);
     int64 quotient = n_abs/COIN;
     int64 remainder = n_abs%COIN;
-    string str = strprintf("%"PRI64d".%08"PRI64d, quotient, remainder);
+    string s = str(boost::format("%lld.%08lld") % quotient % remainder);
 
     // Right-trim excess zeros before the decimal point:
     int nTrim = 0;
-    for (int i = str.size()-1; (str[i] == '0' && isdigit(str[i-2])); --i)
+    for (int i = s.size()-1; (s[i] == '0' && isdigit(s[i-2])); --i)
         ++nTrim;
     if (nTrim)
-        str.erase(str.size()-nTrim, nTrim);
+        s.erase(s.size()-nTrim, nTrim);
 
     if (n < 0)
-        str.insert((unsigned int)0, 1, '-');
+        s.insert((unsigned int)0, 1, '-');
     else if (fPlus && n > 0)
-        str.insert((unsigned int)0, 1, '+');
-    return str;
+        s.insert((unsigned int)0, 1, '+');
+    return s;
 }
 
 
@@ -868,11 +728,15 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
 {
     const char* pszModule = "primecoin";
     if (pex)
-        return strprintf(
-            "EXCEPTION: %s       \n%s       \n%s in %s       \n", typeid(*pex).name(), pex->what(), pszModule, pszThread);
+        return str(boost::format("EXCEPTION: %s       \n%s       \n%s in %s       \n")
+                    % typeid(*pex).name()
+                    % pex->what()
+                    % pszModule
+                    % pszThread);
     else
-        return strprintf(
-            "UNKNOWN EXCEPTION       \n%s in %s       \n", pszModule, pszThread);
+        return str(boost::format("UNKNOWN EXCEPTION       \n%s in %s       \n")
+                    % pszModule
+                    % pszThread);
 }
 
 void PrintException(std::exception* pex, const char* pszThread)

@@ -154,7 +154,7 @@ bool CCoinsViewDB::GetStats(CCoinsStats &stats) {
             }
             pcursor->Next();
         } catch (std::exception &e) {
-            return error("%s() : deserialize error", __PRETTY_FUNCTION__);
+            return false;
         }
     }
     delete pcursor;
@@ -228,14 +228,14 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                     pindexGenesisBlock = pindexNew;
 
                 if (!pindexNew->CheckIndex())
-                    return error("LoadBlockIndex() : CheckIndex failed: %s", pindexNew->ToString().c_str());
+                    return false;
 
                 pcursor->Next();
             } else {
                 break; // if shutdown requested or finished loading block index
             }
         } catch (std::exception &e) {
-            return error("%s() : deserialize error", __PRETTY_FUNCTION__);
+            return false;
         }
     }
     delete pcursor;

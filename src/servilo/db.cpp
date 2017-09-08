@@ -3,21 +3,20 @@
 // Kopirajto 2017 Chapman Shoop
 // Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
+#include "sys/stat.h"
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
+
 #include "db.h"
 #include "util.h"
 #include "main.h"
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-
-#include "sys/stat.h"
 
 using namespace std;
 using namespace boost;
 
-
 unsigned int nWalletDBUpdated;
-
-
 
 //
 // CDB
@@ -91,8 +90,9 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
                      DB_RECOVER    |
                      nEnvFlags,
                      S_IRUSR | S_IWUSR);
-    if (ret != 0)
-        return error("CDB() : error %s (%d) opening database environment", DbEnv::strerror(ret), ret);
+    if (ret != 0) {
+        return false;
+    }
 
     fDbEnvInit = true;
     fMockDb = false;
@@ -125,7 +125,7 @@ void CDBEnv::MakeMock()
                      DB_PRIVATE,
                      S_IRUSR | S_IWUSR);
     if (ret > 0)
-        throw runtime_error(strprintf("CDBEnv::MakeMock(): error %d opening database environment", ret));
+        throw runtime_error(str(boost::format("CDBEnv::MakeMock(): error %d opening database environment") % ret));
 
     fDbEnvInit = true;
     fMockDb = true;
@@ -179,7 +179,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
                 DbMpoolFile*mpf = pdb->get_mpf();
                 ret = mpf->set_flags(DB_MPOOL_NOFILE, 1);
                 if (ret != 0)
-                    throw runtime_error(strprintf("CDB() : failed to configure for no temp file backing for database %s", pszFile));
+                    throw runtime_error(str(boost::format("CDB() : failed to configure for no temp file backing for database %s") % pszFile));
             }
 
             ret = pdb->open(NULL,      // Txn pointer
@@ -195,7 +195,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
                 pdb = NULL;
                 --bitdb.mapFileUseCount[strFile];
                 strFile = "";
-                throw runtime_error(strprintf("CDB() : can't open database file %s, error %d", pszFile, ret));
+                throw runtime_error(str(boost::format("CDB() : can't open database file %s, error %d") % pszFile % ret));
             }
 
             if (fCreate && !Exists(string("version")))
@@ -302,20 +302,9 @@ void CDBEnv::Flush(bool fShutdown)
     }
 }
 
-
-
-
-
-
-
-
-
-
-
 //
 // CAddrDB
 //
-
 
 CAddrDB::CAddrDB()
 {
@@ -327,7 +316,7 @@ bool CAddrDB::Write(const CAddrMan& addr)
     // Generate random temporary filename
     unsigned short randv = 0;
     RAND_bytes((unsigned char *)&randv, sizeof(randv));
-    std::string tmpfn = strprintf("peers.dat.%04x", randv);
+    std::string tmpfn = str(boost::format("peers.dat.%04x") % randv);
 
     // serialize addresses, checksum data up to that point, then append csum
     CDataStream ssPeers(SER_DISK, VERSION);
@@ -340,22 +329,24 @@ bool CAddrDB::Write(const CAddrMan& addr)
     boost::filesystem::path pathTmp = GetDataDir() / tmpfn;
     FILE *file = fopen(pathTmp.string().c_str(), "wb");
     CAutoFile fileout = CAutoFile(file, SER_DISK, VERSION);
-    if (!fileout)
-        return error("CAddrman::Write() : open failed");
+    if (!fileout) {
+        return false;
+    }
 
     // Write and commit header, data
     try {
         fileout << ssPeers;
     }
     catch (std::exception &e) {
-        return error("CAddrman::Write() : I/O error");
+        return false;
     }
     FileCommit(fileout);
     fileout.fclose();
 
     // replace existing peers.dat, if any, with new peers.dat.XXXX
-    if (!RenameOver(pathTmp, pathAddr))
-        return error("CAddrman::Write() : Rename-into-place failed");
+    if (!RenameOver(pathTmp, pathAddr)) {
+        return false;
+    }
 
     return true;
 }
@@ -365,8 +356,9 @@ bool CAddrDB::Read(CAddrMan& addr)
     // open input file, and associate with CAutoFile
     FILE *file = fopen(pathAddr.string().c_str(), "rb");
     CAutoFile filein = CAutoFile(file, SER_DISK, VERSION);
-    if (!filein)
-        return error("CAddrman::Read() : open failed");
+    if (!filein) {
+        return false;
+    }
 
     // use file size to size memory buffer
     int fileSize = GetFilesize(filein);
@@ -383,7 +375,7 @@ bool CAddrDB::Read(CAddrMan& addr)
         filein >> hashIn;
     }
     catch (std::exception &e) {
-        return error("CAddrman::Read() 2 : I/O error or stream data corrupted");
+        return false;
     }
     filein.fclose();
 
@@ -391,8 +383,9 @@ bool CAddrDB::Read(CAddrMan& addr)
 
     // verify stored checksum matches input data
     uint256 hashTmp = Hash(ssPeers.begin(), ssPeers.end());
-    if (hashIn != hashTmp)
-        return error("CAddrman::Read() : checksum mismatch; data corrupted");
+    if (hashIn != hashTmp) {
+        return false;
+    }
 
     unsigned char pchMsgTmp[4];
     try {
@@ -400,14 +393,15 @@ bool CAddrDB::Read(CAddrMan& addr)
         ssPeers >> FLATDATA(pchMsgTmp);
 
         // verify the network matches ours
-        if (memcmp(pchMsgTmp, pchMessageStart, sizeof(pchMsgTmp)))
-            return error("CAddrman::Read() : invalid network magic number");
+        if (memcmp(pchMsgTmp, pchMessageStart, sizeof(pchMsgTmp))) {
+            return false;
+        }
 
         // de-serialize address data into one CAddrMan object
         ssPeers >> addr;
     }
     catch (std::exception &e) {
-        return error("CAddrman::Read() : I/O error or stream data corrupted");
+        return false;
     }
 
     return true;

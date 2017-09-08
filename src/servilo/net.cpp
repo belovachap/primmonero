@@ -4,11 +4,14 @@
 // Kopirajto 2017 Chapman Shoop
 // Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
-#include "db.h"
-#include "net.h"
-#include "init.h"
+#include <boost/format.hpp>
+
 #include "addrman.h"
+#include "db.h"
+#include "init.h"
+#include "net.h"
 #include "script.h"
+#include "util.h"
 
 // Dump addresses to peers.dat every 15 minutes (900s)
 #define DUMP_ADDRESSES_INTERVAL 900
@@ -288,7 +291,7 @@ bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const cha
 {
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket))
-        return error("GetMyExternalIP() : connection to %s failed", addrConnect.ToString().c_str());
+        return false;
 
     send(hSocket, pszGet, strlen(pszGet), MSG_NOSIGNAL);
 
@@ -327,7 +330,7 @@ bool GetMyExternalIP2(const CService& addrConnect, const char* pszGet, const cha
         }
     }
     closesocket(hSocket);
-    return error("GetMyExternalIP() : connection closed");
+    return false;
 }
 
 bool GetMyExternalIP(CNetAddr& ipRet)
@@ -1453,7 +1456,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
     socklen_t len = sizeof(sockaddr);
     if (!addrBind.GetSockAddr((struct sockaddr*)&sockaddr, &len))
     {
-        strError = strprintf("Error: bind address family for %s not supported", addrBind.ToString().c_str());
+        strError = str(boost::format("Error: bind address family for %s not supported") % addrBind.ToString().c_str());
         printf("%s\n", strError.c_str());
         return false;
     }
@@ -1461,7 +1464,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
     SOCKET hListenSocket = socket(((struct sockaddr*)&sockaddr)->sa_family, SOCK_STREAM, IPPROTO_TCP);
     if (hListenSocket == INVALID_SOCKET)
     {
-        strError = strprintf("Error: Couldn't open socket for incoming connections (socket returned error %d)", WSAGetLastError());
+        strError = str(boost::format("Error: Couldn't open socket for incoming connections (socket returned error %d)") % WSAGetLastError());
         printf("%s\n", strError.c_str());
         return false;
     }
@@ -1472,7 +1475,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
 
     if (fcntl(hListenSocket, F_SETFL, O_NONBLOCK) == SOCKET_ERROR)
     {
-        strError = strprintf("Error: Couldn't set properties on socket for incoming connections (error %d)", WSAGetLastError());
+        strError = str(boost::format("Error: Couldn't set properties on socket for incoming connections (error %d)") % WSAGetLastError());
         printf("%s\n", strError.c_str());
         return false;
     }
@@ -1481,9 +1484,9 @@ bool BindListenPort(const CService &addrBind, string& strError)
     {
         int nErr = WSAGetLastError();
         if (nErr == WSAEADDRINUSE)
-            strError = strprintf("Unable to bind to %s on this computer. Primecoin is probably already running.", addrBind.ToString().c_str());
+            strError = str(boost::format("Unable to bind to %s on this computer. Primecoin is probably already running.") % addrBind.ToString().c_str());
         else
-            strError = strprintf("Unable to bind to %s on this computer (bind returned error %d, %s)", addrBind.ToString().c_str(), nErr, strerror(nErr));
+            strError = str(boost::format("Unable to bind to %s on this computer (bind returned error %d, %s)") % addrBind.ToString().c_str() % nErr % strerror(nErr));
         printf("%s\n", strError.c_str());
         return false;
     }
@@ -1492,7 +1495,7 @@ bool BindListenPort(const CService &addrBind, string& strError)
     // Listen for incoming connections
     if (listen(hListenSocket, SOMAXCONN) == SOCKET_ERROR)
     {
-        strError = strprintf("Error: Listening for incoming connections failed (listen returned error %d)", WSAGetLastError());
+        strError = str(boost::format("Error: Listening for incoming connections failed (listen returned error %d)") % WSAGetLastError());
         printf("%s\n", strError.c_str());
         return false;
     }

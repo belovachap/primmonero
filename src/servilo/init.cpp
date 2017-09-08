@@ -11,6 +11,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/convenience.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/format.hpp>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/log/trivial.hpp>
 #include <openssl/crypto.h>
@@ -402,7 +403,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (mapArgs.count("-paytxfee"))
     {
         if (!ParseMoney(mapArgs["-paytxfee"], nTransactionFee) || nTransactionFee < CTransaction::nMinTxFee)
-            return InitError(strprintf("Invalid amount for -paytxfee=<amount>: '%s'", mapArgs["-paytxfee"].c_str()));
+            return InitError(str(boost::format("Invalid amount for -paytxfee=<amount>: '%s'") % mapArgs["-paytxfee"].c_str()));
         if (nTransactionFee > 0.25 * COIN)
             InitWarning("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction.");
     }
@@ -417,7 +418,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (file) fclose(file);
     static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
     if (!lock.try_lock())
-        return InitError(strprintf("Cannot obtain a lock on data directory %s. Primecoin is probably already running.", strDataDir.c_str()));
+        return InitError(str(boost::format("Cannot obtain a lock on data directory %s. Primecoin is probably already running.") % strDataDir.c_str()));
 
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
@@ -442,14 +443,14 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     int nSocksVersion = GetArg("-socks", 5);
     if (nSocksVersion != 4 && nSocksVersion != 5)
-        return InitError(strprintf("Unknown -socks proxy version requested: %i", nSocksVersion));
+        return InitError(str(boost::format("Unknown -socks proxy version requested: %i") % nSocksVersion));
 
     if (mapArgs.count("-onlynet")) {
         std::set<enum Network> nets;
         BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"]) {
             enum Network net = ParseNetwork(snet);
             if (net == NET_UNROUTABLE)
-                return InitError(strprintf("Unknown network specified in -onlynet: '%s'", snet.c_str()));
+                return InitError(str(boost::format("Unknown network specified in -onlynet: '%s'") % snet.c_str()));
             nets.insert(net);
         }
         for (int n = 0; n < NET_MAX; n++) {
@@ -464,7 +465,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (mapArgs.count("-proxy")) {
         addrProxy = CService(mapArgs["-proxy"], 9050);
         if (!addrProxy.IsValid())
-            return InitError(strprintf("Invalid -proxy address: '%s'", mapArgs["-proxy"].c_str()));
+            return InitError(str(boost::format("Invalid -proxy address: '%s'") % mapArgs["-proxy"].c_str()));
 
         if (!IsLimited(NET_IPV4))
             SetProxy(NET_IPV4, addrProxy, nSocksVersion);
@@ -484,7 +485,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         else
             addrOnion = CService(mapArgs["-tor"], 9050);
         if (!addrOnion.IsValid())
-            return InitError(strprintf("Invalid -tor address: '%s'", mapArgs["-tor"].c_str()));
+            return InitError(str(boost::format("Invalid -tor address: '%s'") % mapArgs["-tor"].c_str()));
         SetProxy(NET_TOR, addrOnion, 5);
         SetReachable(NET_TOR);
     }
@@ -500,7 +501,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             BOOST_FOREACH(std::string strBind, mapMultiArgs["-bind"]) {
                 CService addrBind;
                 if (!Lookup(strBind.c_str(), addrBind, GetListenPort(), false))
-                    return InitError(strprintf("Cannot resolve -bind address: '%s'", strBind.c_str()));
+                    return InitError(str(boost::format("Cannot resolve -bind address: '%s'") % strBind.c_str()));
                 fBound |= Bind(addrBind, (BF_EXPLICIT | BF_REPORT_ERROR));
             }
         }
@@ -518,7 +519,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         BOOST_FOREACH(std::string strAddr, mapMultiArgs["-externalip"]) {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
             if (!addrLocal.IsValid())
-                return InitError(strprintf("Cannot resolve -externalip address: '%s'", strAddr.c_str()));
+                return InitError(str(boost::format("Cannot resolve -externalip address: '%s'") % strAddr.c_str()));
             AddLocal(CService(strAddr, GetListenPort(), fNameLookup), LOCAL_MANUAL);
         }
     }
@@ -537,9 +538,9 @@ bool AppInit2(boost::thread_group& threadGroup)
         boost::filesystem::create_directories(blocksDir);
         bool linked = false;
         for (unsigned int i = 1; i < 10000; i++) {
-            boost::filesystem::path source = GetDataDir() / strprintf("blk%04u.dat", i);
+            boost::filesystem::path source = GetDataDir() / str(boost::format("blk%04u.dat") % i);
             if (!boost::filesystem::exists(source)) break;
-            boost::filesystem::path dest = blocksDir / strprintf("blk%05u.dat", i-1);
+            boost::filesystem::path dest = blocksDir / str(boost::format("blk%05u.dat") % (i - 1));
             try {
                 boost::filesystem::create_hard_link(source, dest);
                 printf("Hardlinked %s -> %s\n", source.string().c_str(), dest.string().c_str());

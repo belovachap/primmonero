@@ -3,12 +3,13 @@
 // Kopirajto 2017 Chapman Shoop
 // Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
+#include <arpa/inet.h>
+#include <boost/format.hpp>
+
+#include "main.h"
+#include "netbase.h"
 #include "protocol.h"
 #include "util.h"
-#include "netbase.h"
-#include "main.h"
-
-#include <arpa/inet.h>
 
 static const char* ppszTypeName[] =
 {
@@ -117,7 +118,7 @@ CInv::CInv(const std::string& strType, const uint256& hashIn)
         }
     }
     if (i == ARRAYLEN(ppszTypeName))
-        throw std::out_of_range(strprintf("CInv::CInv(string, uint256) : unknown type '%s'", strType.c_str()));
+        throw std::out_of_range(str(boost::format("CInv::CInv(string, uint256) : unknown type '%s'") % strType.c_str()));
     hash = hashIn;
 }
 
@@ -134,13 +135,13 @@ bool CInv::IsKnownType() const
 const char* CInv::GetCommand() const
 {
     if (!IsKnownType())
-        throw std::out_of_range(strprintf("CInv::GetCommand() : type=%d unknown type", type));
+        throw std::out_of_range(str(boost::format("CInv::GetCommand() : type=%d unknown type") % type));
     return ppszTypeName[type];
 }
 
 std::string CInv::ToString() const
 {
-    return strprintf("%s %s", GetCommand(), hash.ToString().c_str());
+    return str(boost::format("%s %s") % GetCommand() % hash.ToString().c_str());
 }
 
 void CInv::print() const

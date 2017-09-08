@@ -103,34 +103,6 @@ extern volatile bool fReopenDebugLog;
 
 void RandAddSeed();
 void RandAddSeedPerfmon();
-int ATTR_WARN_PRINTF(1,2) OutputDebugStringF(const char* pszFormat, ...);
-
-/*
-  Rationale for the real_strprintf / strprintf construction:
-    It is not allowed to use va_start with a pass-by-reference argument.
-    (C++ standard, 18.7, paragraph 3). Use a dummy argument to work around this, and use a
-    macro to keep similar semantics.
-*/
-
-/** Overload strprintf for char*, so that GCC format type warnings can be given */
-std::string ATTR_WARN_PRINTF(1,3) real_strprintf(const char *format, int dummy, ...);
-/** Overload strprintf for std::string, to be able to use it with _ (translation).
- * This will not support GCC format type warnings (-Wformat) so be careful.
- */
-std::string real_strprintf(const std::string &format, int dummy, ...);
-#define strprintf(format, ...) real_strprintf(format, 0, __VA_ARGS__)
-std::string vstrprintf(const char *format, va_list ap);
-
-bool ATTR_WARN_PRINTF(1,2) error(const char *format, ...);
-
-/* Redefine printf so that it directs output to debug.log
- *
- * Do this *after* defining the other printf-like functions, because otherwise the
- * __attribute__((format(printf,X,Y))) gets expanded to __attribute__((format(OutputDebugStringF,X,Y)))
- * which confuses gcc.
- */
-#define printf OutputDebugStringF
-
 void PrintException(std::exception* pex, const char* pszThread);
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 std::string FormatMoney(int64 n, bool fPlus=false);
@@ -173,16 +145,6 @@ void SetMockTime(int64 nMockTimeIn);
 int64 GetAdjustedTime();
 int64 GetTimeOffset();
 void AddTimeData(const CNetAddr& ip, int64 nTime);
-
-inline std::string i64tostr(int64 n)
-{
-    return strprintf("%" PRI64d, n);
-}
-
-inline std::string itostr(int n)
-{
-    return strprintf("%d", n);
-}
 
 inline int64 atoi64(const char* psz)
 {
@@ -463,9 +425,6 @@ inline uint32_t ByteReverse(uint32_t value)
 //    threadGroup.create_thread(boost::bind(&LoopForever<boost::function<void()> >, "nothing", f, milliseconds));
 template <typename Callable> void LoopForever(const char* name,  Callable func, int64 msecs)
 {
-    std::string s = strprintf("primecoin-%s", name);
-    RenameThread(s.c_str());
-    printf("%s thread start\n", name);
     try
     {
         while (1)
@@ -476,7 +435,6 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     }
     catch (boost::thread_interrupted)
     {
-        printf("%s thread stop\n", name);
         throw;
     }
     catch (std::exception& e) {
@@ -486,20 +444,16 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
         PrintException(NULL, name);
     }
 }
+
 // .. and a wrapper that just calls func once
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
-    std::string s = strprintf("primecoin-%s", name);
-    RenameThread(s.c_str());
     try
     {
-        printf("%s thread start\n", name);
         func();
-        printf("%s thread exit\n", name);
     }
     catch (boost::thread_interrupted)
     {
-        printf("%s thread interrupt\n", name);
         throw;
     }
     catch (std::exception& e) {

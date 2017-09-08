@@ -4,6 +4,7 @@
 #define BOOST_TEST_MODULE Primmonerad Testa Kolekto
 #include <boost/test/unit_test.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 #include "db.h"
 #include "txdb.h"
@@ -17,7 +18,9 @@ struct TestingSetup {
 
     TestingSetup() {
         bitdb.MakeMock();
-        pathTemp = GetTempPath() / strprintf("test_bitcoin_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
+        printf("Hello There!\n");
+        pathTemp = GetTempPath() / str(boost::format("test_bitcoin_%lu_%i") % (unsigned long)GetTime() % (int)(GetRand(100000)));
+        printf("Still running!\n");
         boost::filesystem::create_directories(pathTemp);
         mapArgs["-datadir"] = pathTemp.string();
         pblocktree = new CBlockTreeDB(1 << 20, true);

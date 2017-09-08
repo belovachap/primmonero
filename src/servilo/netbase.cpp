@@ -3,13 +3,14 @@
 // Kopirajto 2017 Chapman Shoop
 // Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
+#include <boost/algorithm/string/case_conv.hpp> // for to_lower()
+#include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
+#include <boost/format.hpp>
+
 #include "netbase.h"
 #include "util.h"
 #include "sync.h"
 #include "hash.h"
-
-#include <boost/algorithm/string/case_conv.hpp> // for to_lower()
-#include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
 
 using namespace std;
 
@@ -150,7 +151,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     if (!addrDest.IsIPv4())
     {
         closesocket(hSocket);
-        return error("Proxy destination is not IPv4");
+        return false;
     }
     char pszSocks4IP[] = "\4\1\0\0\0\0\0\0user";
     struct sockaddr_in addr;
@@ -158,7 +159,7 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     if (!addrDest.GetSockAddr((struct sockaddr*)&addr, &len) || addr.sin_family != AF_INET)
     {
         closesocket(hSocket);
-        return error("Cannot get proxy destination address");
+        return false;
     }
     memcpy(pszSocks4IP + 2, &addr.sin_port, 2);
     memcpy(pszSocks4IP + 4, &addr.sin_addr, 4);
@@ -169,13 +170,13 @@ bool static Socks4(const CService &addrDest, SOCKET& hSocket)
     if (ret != nSize)
     {
         closesocket(hSocket);
-        return error("Error sending to proxy");
+        return false;
     }
     char pchRet[8];
     if (recv(hSocket, pchRet, 8, 0) != 8)
     {
         closesocket(hSocket);
-        return error("Error reading proxy response");
+        return false;
     }
     if (pchRet[1] != 0x5a)
     {
@@ -194,7 +195,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     if (strDest.size() > 255)
     {
         closesocket(hSocket);
-        return error("Hostname too long");
+        return false;
     }
     char pszSocks5Init[] = "\5\1\0";
     ssize_t nSize = sizeof(pszSocks5Init) - 1;
@@ -203,18 +204,18 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     if (ret != nSize)
     {
         closesocket(hSocket);
-        return error("Error sending to proxy");
+        return false;
     }
     char pchRet1[2];
     if (recv(hSocket, pchRet1, 2, 0) != 2)
     {
         closesocket(hSocket);
-        return error("Error reading proxy response");
+        return false;
     }
     if (pchRet1[0] != 0x05 || pchRet1[1] != 0x00)
     {
         closesocket(hSocket);
-        return error("Proxy failed to initialize");
+        return false;
     }
     string strSocks5("\5\1");
     strSocks5 += '\000'; strSocks5 += '\003';
@@ -226,39 +227,39 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
     if (ret != (ssize_t)strSocks5.size())
     {
         closesocket(hSocket);
-        return error("Error sending to proxy");
+        return false;
     }
     char pchRet2[4];
     if (recv(hSocket, pchRet2, 4, 0) != 4)
     {
         closesocket(hSocket);
-        return error("Error reading proxy response");
+        return false;
     }
     if (pchRet2[0] != 0x05)
     {
         closesocket(hSocket);
-        return error("Proxy failed to accept request");
+        return false;
     }
     if (pchRet2[1] != 0x00)
     {
         closesocket(hSocket);
         switch (pchRet2[1])
         {
-            case 0x01: return error("Proxy error: general failure");
-            case 0x02: return error("Proxy error: connection not allowed");
-            case 0x03: return error("Proxy error: network unreachable");
-            case 0x04: return error("Proxy error: host unreachable");
-            case 0x05: return error("Proxy error: connection refused");
-            case 0x06: return error("Proxy error: TTL expired");
-            case 0x07: return error("Proxy error: protocol error");
-            case 0x08: return error("Proxy error: address type not supported");
-            default:   return error("Proxy error: unknown");
+            case 0x01: return false;
+            case 0x02: return false;
+            case 0x03: return false;
+            case 0x04: return false;
+            case 0x05: return false;
+            case 0x06: return false;
+            case 0x07: return false;
+            case 0x08: return false;
+            default:   return false;
         }
     }
     if (pchRet2[2] != 0x00)
     {
         closesocket(hSocket);
-        return error("Error: malformed proxy response");
+        return false;
     }
     char pchRet3[256];
     switch (pchRet2[3])
@@ -269,22 +270,22 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket)
         {
             ret = recv(hSocket, pchRet3, 1, 0) != 1;
             if (ret)
-                return error("Error reading from proxy");
+                return false;
             int nRecv = pchRet3[0];
             ret = recv(hSocket, pchRet3, nRecv, 0) != nRecv;
             break;
         }
-        default: closesocket(hSocket); return error("Error: malformed proxy response");
+        default: closesocket(hSocket); return false;
     }
     if (ret)
     {
         closesocket(hSocket);
-        return error("Error reading from proxy");
+        return false;
     }
     if (recv(hSocket, pchRet3, 2, 0) != 2)
     {
         closesocket(hSocket);
-        return error("Error reading from proxy");
+        return false;
     }
     printf("SOCKS5 connected %s\n", strDest.c_str());
     return true;
@@ -707,14 +708,23 @@ std::string CNetAddr::ToStringIP() const
         if (!getnameinfo((const struct sockaddr*)&sockaddr, socklen, name, sizeof(name), NULL, 0, NI_NUMERICHOST))
             return std::string(name);
     }
-    if (IsIPv4())
-        return strprintf("%u.%u.%u.%u", GetByte(3), GetByte(2), GetByte(1), GetByte(0));
-    else
-        return strprintf("%x:%x:%x:%x:%x:%x:%x:%x",
-                         GetByte(15) << 8 | GetByte(14), GetByte(13) << 8 | GetByte(12),
-                         GetByte(11) << 8 | GetByte(10), GetByte(9) << 8 | GetByte(8),
-                         GetByte(7) << 8 | GetByte(6), GetByte(5) << 8 | GetByte(4),
-                         GetByte(3) << 8 | GetByte(2), GetByte(1) << 8 | GetByte(0));
+    if (IsIPv4()) {
+        return str(boost::format("%u.%u.%u.%u")
+                    % GetByte(3)
+                    % GetByte(2)
+                    % GetByte(1)
+                    % GetByte(0));
+    } else {
+        return str(boost::format("%x:%x:%x:%x:%x:%x:%x:%x")
+                    % (GetByte(15) << 8 | GetByte(14))
+                    % (GetByte(13) << 8 | GetByte(12))
+                    % (GetByte(11) << 8 | GetByte(10))
+                    % (GetByte(9) << 8 | GetByte(8))
+                    % (GetByte(7) << 8 | GetByte(6))
+                    % (GetByte(5) << 8 | GetByte(4))
+                    % (GetByte(3) << 8 | GetByte(2))
+                    % (GetByte(1) << 8 | GetByte(0)));
+    }
 }
 
 std::string CNetAddr::ToString() const
@@ -1044,7 +1054,7 @@ std::vector<unsigned char> CService::GetKey() const
 
 std::string CService::ToStringPort() const
 {
-    return strprintf("%u", port);
+    return str(boost::format("%u") % port);
 }
 
 std::string CService::ToStringIPPort() const

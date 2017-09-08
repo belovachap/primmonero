@@ -2,17 +2,21 @@
 // Copyright (c) 2009-2012 The Bitcoin developers
 // Copyright (c) 2011-2013 PPCoin developers
 // Copyright (c) 2013 Primecoin developers
-// Distributed under conditional MIT/X11 software license,
-// see the accompanying file COPYING
-#ifndef BITCOIN_MAIN_H
-#define BITCOIN_MAIN_H
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
+#ifndef __MAIN_H__
+#define __MAIN_H__
+
+#include <list>
+
+#include <boost/format.hpp>
 
 #include "bignum.h"
 #include "sync.h"
 #include "net.h"
 #include "script.h"
 
-#include <list>
 
 class CBlock;
 class CBlockIndex;
@@ -260,7 +264,7 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("COutPoint(%s, %u)", hash.ToString().c_str(), n);
+        return str(boost::format("COutPoint(%s, %u)") % hash.ToString().c_str() % n);
     }
 
     void print() const
@@ -328,17 +332,22 @@ public:
 
     std::string ToString() const
     {
-        std::string str;
-        str += "CTxIn(";
-        str += prevout.ToString();
-        if (prevout.IsNull())
-            str += strprintf(", coinbase %s", HexStr(scriptSig).c_str());
-        else
-            str += strprintf(", scriptSig=%s", scriptSig.ToString().substr(0,24).c_str());
-        if (nSequence != std::numeric_limits<unsigned int>::max())
-            str += strprintf(", nSequence=%u", nSequence);
-        str += ")";
-        return str;
+        std::string s;
+        s += "CTxIn(";
+        s += prevout.ToString();
+
+        if (prevout.IsNull()) {
+            s += str(boost::format(", coinbase %s") % HexStr(scriptSig).c_str());
+        } else {
+            s += str(boost::format(", scriptSig=%s") % scriptSig.ToString().substr(0,24).c_str());
+        }
+
+        if (nSequence != std::numeric_limits<unsigned int>::max()) {
+            s += str(boost::format(", nSequence=%u") % nSequence);
+        }
+
+        s += ")";
+        return s;
     }
 
     void print() const
@@ -346,9 +355,6 @@ public:
         printf("%s\n", ToString().c_str());
     }
 };
-
-
-
 
 /** An output of a transaction.  It contains the public key that the next input
  * must be able to sign with to claim it.
@@ -407,9 +413,10 @@ public:
 
     std::string ToString() const
     {
-        if (scriptPubKey.size() < 6)
+        if (scriptPubKey.size() < 6) {
             return "CTxOut(error)";
-        return strprintf("CTxOut(nValue=%" PRI64d ".%08" PRI64d ", scriptPubKey=%s)", nValue / COIN, nValue % COIN, scriptPubKey.ToString().substr(0,30).c_str());
+        }
+        return str(boost::format("CTxOut(nValue=%lld.%08lld, scriptPubKey=%s)") % (nValue / COIN) % (nValue % COIN) % scriptPubKey.ToString().substr(0,30).c_str());
     }
 
     void print() const
@@ -417,8 +424,6 @@ public:
         printf("%s\n", ToString().c_str());
     }
 };
-
-
 
 enum GetMinFee_mode
 {
@@ -601,18 +606,23 @@ public:
 
     std::string ToString() const
     {
-        std::string str;
-        str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%" PRIszu ", vout.size=%" PRIszu ", nLockTime=%u)\n",
-            GetHash().ToString().c_str(),
-            nVersion,
-            vin.size(),
-            vout.size(),
-            nLockTime);
-        for (unsigned int i = 0; i < vin.size(); i++)
-            str += "    " + vin[i].ToString() + "\n";
-        for (unsigned int i = 0; i < vout.size(); i++)
-            str += "    " + vout[i].ToString() + "\n";
-        return str;
+        std::string s;
+        s += str(boost::format("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n")
+                    % GetHash().ToString().c_str()
+                    % nVersion
+                    % vin.size()
+                    % vout.size()
+                    % nLockTime);
+
+        for (unsigned int i = 0; i < vin.size(); i++) {
+            s += "    " + vin[i].ToString() + "\n";
+        }
+
+        for (unsigned int i = 0; i < vout.size(); i++) {
+            s += "    " + vout[i].ToString() + "\n";
+        }
+
+        return s;
     }
 
     void print() const
@@ -743,7 +753,7 @@ public:
         // Open history file to append
         CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, VERSION);
         if (!fileout)
-            return error("CBlockUndo::WriteToDisk() : OpenUndoFile failed");
+            return false;
 
         // Write index header
         unsigned int nSize = fileout.GetSerializeSize(*this);
@@ -752,7 +762,7 @@ public:
         // Write undo data
         long fileOutPos = ftell(fileout);
         if (fileOutPos < 0)
-            return error("CBlockUndo::WriteToDisk() : ftell failed");
+            return false;
         pos.nPos = (unsigned int)fileOutPos;
         fileout << *this;
 
@@ -775,7 +785,7 @@ public:
         // Open history file to read
         CAutoFile filein = CAutoFile(OpenUndoFile(pos, true), SER_DISK, VERSION);
         if (!filein)
-            return error("CBlockUndo::ReadFromDisk() : OpenBlockFile failed");
+            return false;
 
         // Read block
         uint256 hashChecksum;
@@ -784,7 +794,7 @@ public:
             filein >> hashChecksum;
         }
         catch (std::exception &e) {
-            return error("%s() : deserialize or I/O error", __PRETTY_FUNCTION__);
+            return false;
         }
 
         // Verify checksum
@@ -792,7 +802,7 @@ public:
         hasher << hashBlock;
         hasher << *this;
         if (hashChecksum != hasher.GetHash())
-            return error("CBlockUndo::ReadFromDisk() : checksum mismatch");
+            return false;
 
         return true;
     }
@@ -1410,7 +1420,7 @@ public:
         // Open history file to append
         CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, VERSION);
         if (!fileout)
-            return error("CBlock::WriteToDisk() : OpenBlockFile failed");
+            return false;
 
         // Write index header
         unsigned int nSize = fileout.GetSerializeSize(*this);
@@ -1419,7 +1429,7 @@ public:
         // Write block
         long fileOutPos = ftell(fileout);
         if (fileOutPos < 0)
-            return error("CBlock::WriteToDisk() : ftell failed");
+            return false;
         pos.nPos = (unsigned int)fileOutPos;
         fileout << *this;
 
@@ -1438,22 +1448,20 @@ public:
         // Open history file to read
         CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, VERSION);
         if (!filein)
-            return error("CBlock::ReadFromDisk() : OpenBlockFile failed");
+            return false;
 
         // Read block
         try {
             filein >> *this;
         }
         catch (std::exception &e) {
-            return error("%s() : deserialize or I/O error", __PRETTY_FUNCTION__);
+            return false;
         }
 
         // Primecoin: no proof-of-work check here unlike bitcoin
         // Check the header
         return true;
     }
-
-
 
     void print() const
     {
@@ -1475,7 +1483,6 @@ public:
             printf("%s ", vMerkleTree[i].ToString().c_str());
         printf("\n");
     }
-
 
     /** Undo the effects of this block (with given index) on the UTXO set represented by coins.
      *  In case pfClean is provided, operation will try to be tolerant about errors, and *pfClean
@@ -1540,7 +1547,13 @@ public:
      }
 
      std::string ToString() const {
-         return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst).c_str(), DateTimeStrFormat("%Y-%m-%d", nTimeLast).c_str());
+         return str(boost::format("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)")
+                        % nBlocks
+                        % nSize
+                        % nHeightFirst
+                        % nHeightLast
+                        % DateTimeStrFormat("%Y-%m-%d", nTimeFirst).c_str()
+                        % DateTimeStrFormat("%Y-%m-%d", nTimeLast).c_str());
      }
 
      // update statistics (does not update nSize)
@@ -1778,10 +1791,12 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
-            pprev, pnext, nHeight,
-            hashMerkleRoot.ToString().c_str(),
-            GetBlockHash().ToString().c_str());
+        return str(boost::format("CBlockIndex(pprev=%p, pnext=%p, nHeight=%d, merkle=%s, hashBlock=%s)")
+                    % pprev
+                    % pnext
+                    % nHeight
+                    % hashMerkleRoot.ToString().c_str()
+                    % GetBlockHash().ToString().c_str());
     }
 
     void print() const
@@ -1858,12 +1873,12 @@ public:
 
     std::string ToString() const
     {
-        std::string str = "CDiskBlockIndex(";
-        str += CBlockIndex::ToString();
-        str += strprintf("\n                hashBlock=%s, hashPrev=%s)",
-            GetBlockHash().ToString().c_str(),
-            hashPrev.ToString().c_str());
-        return str;
+        std::string s = "CDiskBlockIndex(";
+        s += CBlockIndex::ToString();
+        s += str(boost::format("\n                hashBlock=%s, hashPrev=%s)")
+                    % GetBlockHash().ToString().c_str()
+                    % hashPrev.ToString().c_str());
+        return s;
     }
 
     void print() const
@@ -2250,4 +2265,4 @@ public:
     )
 };
 
-#endif
+#endif // __MAIN_H__

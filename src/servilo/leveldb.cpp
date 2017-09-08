@@ -1,16 +1,16 @@
 // Copyright (c) 2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
 
-#include "leveldb.h"
-#include "util.h"
-
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <leveldb/env.h>
 #include <leveldb/cache.h>
 #include <leveldb/filter_policy.h>
 #include <leveldb/helpers/memenv.h>
 
-#include <boost/filesystem.hpp>
+#include "leveldb.h"
+#include "util.h"
 
 void HandleError(const leveldb::Status &status) throw(leveldb_error) {
     if (status.ok())
@@ -55,7 +55,7 @@ CLevelDB::CLevelDB(const boost::filesystem::path &path, size_t nCacheSize, bool 
     }
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
     if (!status.ok())
-        throw std::runtime_error(strprintf("CLevelDB(): error opening database environment %s", status.ToString().c_str()));
+        throw std::runtime_error(str(boost::format("CLevelDB(): error opening database environment %s") % status.ToString().c_str()));
     printf("Opened LevelDB successfully\n");
 }
 

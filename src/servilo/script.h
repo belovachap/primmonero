@@ -1,9 +1,10 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef H_BITCOIN_SCRIPT
-#define H_BITCOIN_SCRIPT
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
+#ifndef __SCRIPT_H__
+#define __SCRIPT_H__
 
 #include <string>
 #include <vector>
@@ -209,15 +210,7 @@ enum opcodetype
 
 const char* GetOpName(opcodetype opcode);
 
-
-
-inline std::string ValueString(const std::vector<unsigned char>& vch)
-{
-    if (vch.size() <= 4)
-        return strprintf("%d", CBigNum(vch).getint());
-    else
-        return HexStr(vch);
-}
+std::string ValueString(const std::vector<unsigned char>& vch);
 
 inline std::string StackString(const std::vector<std::vector<unsigned char> >& vStack)
 {
@@ -678,4 +671,6 @@ bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const C
 // combine them intelligently and return the result.
 CScript CombineSignatures(CScript scriptPubKey, const CTransaction& txTo, unsigned int nIn, const CScript& scriptSig1, const CScript& scriptSig2);
 
-#endif
+bool CheckSig(std::vector<unsigned char> vchSig, std::vector<unsigned char> vchPubKey, CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType, int flags);
+
+#endif // __SCRIPT_H__
