@@ -121,16 +121,12 @@ public:
     bool IsNull() const;
 
     void MakeNewKey(bool fCompressed);
-    bool SetSecret(const CSecret& vchSecret, bool fCompressed = false);
-    CSecret GetSecret(bool &fCompressed) const;
     bool SetPubKey(const CPubKey& vchPubKey);
     CPubKey GetPubKey() const;
 
     bool Sign(uint256 hash, std::vector<unsigned char>& vchSig);
 
     bool Verify(uint256 hash, const std::vector<unsigned char>& vchSig);
-
-    bool IsValid();
 };
 
 #endif // __KEY_H__
