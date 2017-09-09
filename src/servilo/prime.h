@@ -6,7 +6,6 @@
 #define __PRIME_H__
 
 #include "main.h"
-#include "base58.h"
     
 #include <gmp.h>
 #include <gmpxx.h>

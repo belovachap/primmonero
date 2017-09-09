@@ -18,9 +18,7 @@ struct TestingSetup {
 
     TestingSetup() {
         bitdb.MakeMock();
-        printf("Hello There!\n");
         pathTemp = GetTempPath() / str(boost::format("test_bitcoin_%lu_%i") % (unsigned long)GetTime() % (int)(GetRand(100000)));
-        printf("Still running!\n");
         boost::filesystem::create_directories(pathTemp);
         mapArgs["-datadir"] = pathTemp.string();
         pblocktree = new CBlockTreeDB(1 << 20, true);

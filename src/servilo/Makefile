@@ -95,11 +95,9 @@ OBJS=\
     obj/version.o \
     obj/netbase.o \
     obj/addrman.o \
-    obj/crypter.o \
     obj/key.o \
     obj/db.o \
     obj/init.o \
-    obj/keystore.o \
     obj/main.o \
     obj/net.o \
     obj/protocol.o \
