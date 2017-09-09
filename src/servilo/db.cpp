@@ -151,7 +151,6 @@ CDBEnv::VerifyResult CDBEnv::Verify(std::string strFile, bool (*recoverFunc)(CDB
 CDB::CDB(const char *pszFile, const char* pszMode) :
     pdb(NULL), activeTxn(NULL)
 {
-    int ret;
     if (pszFile == NULL)
         return;
 
@@ -171,6 +170,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
         pdb = bitdb.mapDb[strFile];
         if (pdb == NULL)
         {
+            int ret;
             pdb = new Db(&bitdb.dbenv, 0);
 
             bool fMockDb = bitdb.IsMock();
@@ -267,13 +267,11 @@ void CDBEnv::Flush(bool fShutdown)
     {
         LOCK(cs_db);
         map<string, int>::iterator mi = mapFileUseCount.begin();
-        while (mi != mapFileUseCount.end())
-        {
+        while (mi != mapFileUseCount.end()) {
             string strFile = (*mi).first;
             int nRefCount = (*mi).second;
             printf("%s refcount=%d\n", strFile.c_str(), nRefCount);
-            if (nRefCount == 0)
-            {
+            if (nRefCount == 0) {
                 // Move log data to the dat file
                 CloseDb(strFile);
                 printf("%s checkpoint\n", strFile.c_str());
@@ -284,19 +282,19 @@ void CDBEnv::Flush(bool fShutdown)
                 printf("%s closed\n", strFile.c_str());
                 mapFileUseCount.erase(mi++);
             }
-            else
-                mi++;
+            else {
+                ++mi;
+            }
         }
         printf("DBFlush(%s)%s ended %15"PRI64d"ms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
-        if (fShutdown)
-        {
+        if (fShutdown){
             char** listp;
-            if (mapFileUseCount.empty())
-            {
+            if (mapFileUseCount.empty()) {
                 dbenv.log_archive(&listp, DB_ARCH_REMOVE);
                 Close();
-                if (!fMockDb)
+                if (!fMockDb) {
                     boost::filesystem::remove_all(path / "database");
+                }
             }
         }
     }

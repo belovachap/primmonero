@@ -30,4 +30,4 @@ RUN make -j$J servilo
 
 VOLUME /mnt/datadir
 EXPOSE 9911 9913
-CMD ./primmonera-servilo -datadir=/mnt/datadir
+CMD ./servilo -datadir=/mnt/datadir
