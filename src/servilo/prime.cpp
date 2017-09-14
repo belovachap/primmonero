@@ -120,7 +120,7 @@ bool TargetGetNext(unsigned int nBits, int64 nInterval, int64 nTargetSpacing, in
         bnFractionalDifficulty = nFractionalDifficultyMin;
     uint64 nFractionalDifficultyNew = bnFractionalDifficulty.getuint256().Get64();
     if (fDebug && GetBoolArg("-printtarget"))
-        printf("TargetGetNext() : nActualSpacing=%d nFractionDiff=%016"PRI64x" nFractionDiffNew=%016"PRI64x"\n", (int)nActualSpacing, nFractionalDifficulty, nFractionalDifficultyNew);
+        printf("TargetGetNext() : nActualSpacing=%d nFractionDiff=%016" PRI64x " nFractionDiffNew=%016" PRI64x "\n", (int)nActualSpacing, nFractionalDifficulty, nFractionalDifficultyNew);
     // Step up length if fractional past threshold
     if (nFractionalDifficultyNew > nFractionalDifficultyThreshold)
     {
@@ -148,7 +148,7 @@ static bool FermatProbablePrimalityTest(const CBigNum& n, unsigned int& nLength)
     CBigNum a = 2; // base; Fermat witness
     CBigNum e = n - 1;
     CBigNum r;
-    BN_mod_exp(&r, &a, &e, &n, pctx);
+    BN_mod_exp(r.get(), a.get(), e.get(), n.cget(), pctx);
     if (r == 1)
         return true;
     // Failed Fermat test, calculate fractional length
@@ -172,7 +172,7 @@ static bool EulerLagrangeLifchitzPrimalityTest(const CBigNum& n, bool fSophieGer
     CBigNum a = 2;
     CBigNum e = (n - 1) >> 1;
     CBigNum r;
-    BN_mod_exp(&r, &a, &e, &n, pctx);
+    BN_mod_exp(r.get(), a.get(), e.get(), n.cget(), pctx);
     CBigNum nMod8 = n % 8;
     bool fPassedTest = false;
     if (fSophieGermain && (nMod8 == 7)) // Euler & Lagrange

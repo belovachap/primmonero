@@ -34,7 +34,6 @@ LIBS += \
    -l db_cxx \
    -l ssl \
    -l crypto \
-   -l json_spirit \
    -l gmp \
    -l leveldb \
    -l memenv \
@@ -85,7 +84,8 @@ xCXXFLAGS=\
     -Wformat \
     -Wformat-security \
     -Wno-unused-parameter \
-    -pthread
+    -pthread \
+    -std=c++14
 
 # LDFLAGS can be specified on the make command line, so we use xLDFLAGS that only
 # adds some defaults in front. Unfortunately, LDFLAGS=... $(LDFLAGS) does not work.

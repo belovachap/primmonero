@@ -6,7 +6,7 @@
 # Run with:
 #     docker run --rm -v /home/user/.primmonero:/mnt/datadir -p 9911:9911 primmonero-servilo
 
-FROM debian:8
+FROM debian:9
 
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y build-essential \
@@ -14,9 +14,9 @@ RUN apt-get install -y build-essential \
                        libboost-all-dev \
                        libdb++-dev \
                        libgmp-dev \
-                       libjson-spirit-dev \
                        libleveldb-dev \
-                       libssl-dev
+                       libssl-dev \
+                       zlib1g-dev
 
 WORKDIR /usr/src/servilo
 

@@ -286,7 +286,7 @@ void CDBEnv::Flush(bool fShutdown)
                 ++mi;
             }
         }
-        printf("DBFlush(%s)%s ended %15"PRI64d"ms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
+        printf("DBFlush(%s)%s ended %15" PRI64d "ms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " db not started", GetTimeMillis() - nStart);
         if (fShutdown){
             char** listp;
             if (mapFileUseCount.empty()) {

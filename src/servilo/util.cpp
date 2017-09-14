@@ -981,7 +981,7 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
 
     // Add data
     vTimeOffsets.input(nOffsetSample);
-    printf("Added time data, samples %d, offset %+"PRI64d" (%+"PRI64d" minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
+    printf("Added time data, samples %d, offset %+" PRI64d " (%+" PRI64d " minutes)\n", vTimeOffsets.size(), nOffsetSample, nOffsetSample/60);
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1)
     {
         int64 nMedian = vTimeOffsets.median();
@@ -1014,10 +1014,10 @@ void AddTimeData(const CNetAddr& ip, int64 nTime)
         }
         if (fDebug) {
             BOOST_FOREACH(int64 n, vSorted)
-                printf("%+"PRI64d"  ", n);
+                printf("%+" PRI64d "  ", n);
             printf("|  ");
         }
-        printf("nTimeOffset = %+"PRI64d"  (%+"PRI64d" minutes)\n", nTimeOffset, nTimeOffset/60);
+        printf("nTimeOffset = %+" PRI64d "  (%+" PRI64d " minutes)\n", nTimeOffset, nTimeOffset/60);
     }
 }
 

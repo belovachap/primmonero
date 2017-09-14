@@ -629,7 +629,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         printf("Shutdown requested. Exiting.\n");
         return false;
     }
-    printf(" block index %15"PRI64d"ms\n", GetTimeMillis() - nStart);
+    printf(" block index %15" PRI64d "ms\n", GetTimeMillis() - nStart);
 
     if (mapArgs.count("-printblock"))
     {
@@ -680,7 +680,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             printf("Invalid or missing peers.dat; recreating\n");
     }
 
-    printf("Loaded %i addresses from peers.dat  %"PRI64d"ms\n",
+    printf("Loaded %i addresses from peers.dat  %" PRI64d "ms\n",
            addrman.size(), GetTimeMillis() - nStart);
 
     // ********************************************************* Step 10: start node
@@ -694,7 +694,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     RandAddSeedPerfmon();
 
     //// debug print
-    printf("mapBlockIndex.size() = %"PRIszu"\n", mapBlockIndex.size());
+    printf("mapBlockIndex.size() = %" PRIszu "\n", mapBlockIndex.size());
     printf("nBestHeight = %d\n", nBestHeight);
 
     StartNode(threadGroup);
