@@ -16,17 +16,16 @@
 #include "main.h"
 #include "script.h"
 
-using namespace std;
 using namespace boost::assign;
 
-typedef vector<unsigned char> valtype;
+typedef std::vector<unsigned char> valtype;
 
 extern uint256 SignatureHash(CScript scriptCode, const CTransaction& txTo, unsigned int nIn, int nHashType);
 
 BOOST_AUTO_TEST_SUITE(multisig_tests)
 
 CScript
-sign_multisig(CScript scriptPubKey, vector<CKey> keys, CTransaction transaction, int whichIn)
+sign_multisig(CScript scriptPubKey, std::vector<CKey> keys, CTransaction transaction, int whichIn)
 {
     uint256 hash = SignatureHash(scriptPubKey, transaction, whichIn, SIGHASH_ALL);
 
@@ -34,7 +33,7 @@ sign_multisig(CScript scriptPubKey, vector<CKey> keys, CTransaction transaction,
     result << OP_0; // CHECKMULTISIG bug workaround
     BOOST_FOREACH(CKey key, keys)
     {
-        vector<unsigned char> vchSig;
+        std::vector<unsigned char> vchSig;
         BOOST_CHECK(key.Sign(hash, vchSig));
         vchSig.push_back((unsigned char)SIGHASH_ALL);
         result << vchSig;
@@ -75,7 +74,7 @@ BOOST_AUTO_TEST_CASE(multisig_verify)
         txTo[i].vout[0].nValue = 1;
     }
 
-    vector<CKey> keys;
+    std::vector<CKey> keys;
     CScript s;
 
     // Test a AND b:

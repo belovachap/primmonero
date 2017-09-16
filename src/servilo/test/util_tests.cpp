@@ -8,8 +8,6 @@
 #include "main.h"
 #include "util.h"
 
-using namespace std;
-
 BOOST_AUTO_TEST_SUITE(util_tests)
 
 BOOST_AUTO_TEST_CASE(util_criticalsection)

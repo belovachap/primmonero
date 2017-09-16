@@ -13,9 +13,6 @@
 #include "util.h"
 #include "main.h"
 
-using namespace std;
-using namespace boost;
-
 unsigned int nWalletDBUpdated;
 
 //
@@ -61,9 +58,9 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
     boost::this_thread::interruption_point();
 
     path = pathIn;
-    filesystem::path pathLogDir = path / "database";
-    filesystem::create_directory(pathLogDir);
-    filesystem::path pathErrorFile = path / "db.log";
+    boost::filesystem::path pathLogDir = path / "database";
+    boost::filesystem::create_directory(pathLogDir);
+    boost::filesystem::path pathErrorFile = path / "db.log";
     printf("dbenv.open LogDir=%s ErrorFile=%s\n", pathLogDir.string().c_str(), pathErrorFile.string().c_str());
 
     unsigned int nEnvFlags = 0;
@@ -102,7 +99,7 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
 void CDBEnv::MakeMock()
 {
     if (fDbEnvInit)
-        throw runtime_error("CDBEnv::MakeMock(): already initialized");
+        throw std::runtime_error("CDBEnv::MakeMock(): already initialized");
 
     boost::this_thread::interruption_point();
 
@@ -125,7 +122,7 @@ void CDBEnv::MakeMock()
                      DB_PRIVATE,
                      S_IRUSR | S_IWUSR);
     if (ret > 0)
-        throw runtime_error(str(boost::format("CDBEnv::MakeMock(): error %d opening database environment") % ret));
+        throw std::runtime_error(str(boost::format("CDBEnv::MakeMock(): error %d opening database environment") % ret));
 
     fDbEnvInit = true;
     fMockDb = true;
@@ -163,7 +160,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
     {
         LOCK(bitdb.cs_db);
         if (!bitdb.Open(GetDataDir()))
-            throw runtime_error("env open failed");
+            throw std::runtime_error("env open failed");
 
         strFile = pszFile;
         ++bitdb.mapFileUseCount[strFile];
@@ -179,7 +176,7 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
                 DbMpoolFile*mpf = pdb->get_mpf();
                 ret = mpf->set_flags(DB_MPOOL_NOFILE, 1);
                 if (ret != 0)
-                    throw runtime_error(str(boost::format("CDB() : failed to configure for no temp file backing for database %s") % pszFile));
+                    throw std::runtime_error(str(boost::format("CDB() : failed to configure for no temp file backing for database %s") % pszFile));
             }
 
             ret = pdb->open(NULL,      // Txn pointer
@@ -195,10 +192,10 @@ CDB::CDB(const char *pszFile, const char* pszMode) :
                 pdb = NULL;
                 --bitdb.mapFileUseCount[strFile];
                 strFile = "";
-                throw runtime_error(str(boost::format("CDB() : can't open database file %s, error %d") % pszFile % ret));
+                throw std::runtime_error(str(boost::format("CDB() : can't open database file %s, error %d") % pszFile % ret));
             }
 
-            if (fCreate && !Exists(string("version")))
+            if (fCreate && !Exists(std::string("version")))
             {
                 bool fTmp = fReadOnly;
                 fReadOnly = false;
@@ -241,7 +238,7 @@ void CDB::Close()
     }
 }
 
-void CDBEnv::CloseDb(const string& strFile)
+void CDBEnv::CloseDb(const std::string& strFile)
 {
     {
         LOCK(cs_db);
@@ -266,9 +263,9 @@ void CDBEnv::Flush(bool fShutdown)
         return;
     {
         LOCK(cs_db);
-        map<string, int>::iterator mi = mapFileUseCount.begin();
+        std::map<std::string, int>::iterator mi = mapFileUseCount.begin();
         while (mi != mapFileUseCount.end()) {
-            string strFile = (*mi).first;
+            std::string strFile = (*mi).first;
             int nRefCount = (*mi).second;
             printf("%s refcount=%d\n", strFile.c_str(), nRefCount);
             if (nRefCount == 0) {
@@ -363,7 +360,7 @@ bool CAddrDB::Read(CAddrMan& addr)
     int dataSize = fileSize - sizeof(uint256);
     //Don't try to resize to a negative number if file is small
     if ( dataSize < 0 ) dataSize = 0;
-    vector<unsigned char> vchData;
+    std::vector<unsigned char> vchData;
     vchData.resize(dataSize);
     uint256 hashIn;
 

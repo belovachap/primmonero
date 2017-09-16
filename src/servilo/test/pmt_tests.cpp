@@ -1,9 +1,10 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include <boost/test/unit_test.hpp>
 
 #include "uint256.h"
 #include "main.h"
-
-using namespace std;
 
 class CPartialMerkleTreeTester : public CPartialMerkleTree
 {

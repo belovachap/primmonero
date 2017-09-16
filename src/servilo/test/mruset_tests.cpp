@@ -1,9 +1,10 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include <boost/test/unit_test.hpp>
 
 #include "mruset.h"
 #include "util.h"
-
-using namespace std;
 
 #define NUM_TESTS 16
 #define MAX_SIZE 100
@@ -79,8 +80,8 @@ BOOST_AUTO_TEST_CASE(mruset_window)
     {
         mru.insert(permute(n));
 
-        set<int> tester;
-        for (int m=max(0,n-MAX_SIZE+1); m<=n; m++)
+        std::set<int> tester;
+        for (int m=std::max(0,n-MAX_SIZE+1); m<=n; m++)
             tester.insert(permute(m));
 
         BOOST_CHECK(mru == tester);

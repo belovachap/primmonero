@@ -1,3 +1,6 @@
+// Kopirajto 2017 Chapman Shoop
+// Distribuata sub kondiĉa MIT / X11 programaro licenco, vidu KOPII.
+
 #include <boost/test/unit_test.hpp>
 
 #include <string>
@@ -16,8 +19,6 @@
 
 // amounts 50 .. 21000000
 #define NUM_MULTIPLES_50BTC 420000
-
-using namespace std;
 
 BOOST_AUTO_TEST_SUITE(compress_tests)
 
